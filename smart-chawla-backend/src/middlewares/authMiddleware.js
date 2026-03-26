@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
-const AppError = require('../utils/errorHandler');
+const { AppError } = require("../utils/errorHandler");
 
 
 // Authenticate user

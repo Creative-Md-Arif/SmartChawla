@@ -6,7 +6,7 @@ const User = require("../models/userModel");
 const Coupon = require("../models/couponModel");
 const Notification = require("../models/notificationModel");
 const { cloudinary, imageConfig } = require("../config/cloudinary");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 
 // Create order
 exports.createOrder = async (req, res, next) => {
@@ -672,30 +672,21 @@ exports.verifyPayment = async (req, res, next) => {
 
     // 1. Basic Validations
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res
-        .status(400)
-        .json({ status: "fail", message: "Invalid order ID format" });
+      return next(new AppError("Invalid order ID format", 400));
     }
 
     const order = await Order.findById(id).populate("user");
 
     if (!order) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Order not found" });
+      return next(new AppError("Order not found", 404));
     }
 
     if (order.status !== "Pending") {
-      return res
-        .status(400)
-        .json({ status: "fail", message: "Order is not pending" });
+      return next(new AppError("Order is not pending", 400));
     }
 
     if (!order.transactionId) {
-      return res.status(400).json({
-        status: "fail",
-        message: "No transaction ID found for this order",
-      });
+      return next(new AppError("No transaction ID found for this order", 400));
     }
 
     // 2. Check for Duplicate Transaction IDs
@@ -706,11 +697,12 @@ exports.verifyPayment = async (req, res, next) => {
     });
 
     if (existingOrder) {
-      return res.status(400).json({
-        status: "fail",
-        message:
+      return next(
+        new AppError(
           "This transaction ID has already been verified for another order",
-      });
+          400,
+        ),
+      );
     }
 
     // 3. Start Transaction Session
@@ -736,7 +728,10 @@ exports.verifyPayment = async (req, res, next) => {
           );
 
           if (!updatedProduct) {
-            throw new Error(`Insufficient stock for product: ${item.itemId}`);
+            throw new AppError(
+              `Insufficient stock for product: ${item.itemId}`,
+              400,
+            );
           }
         } else if (item.itemType === "course") {
           await User.findByIdAndUpdate(
@@ -804,17 +799,16 @@ exports.verifyPayment = async (req, res, next) => {
       await session.abortTransaction();
       session.endSession();
 
-      return res.status(400).json({
-        status: "error",
-        message: error.message || "Transaction failed and rolled back",
-      });
+      return next(
+        new AppError(
+          error.message || "Transaction failed and rolled back",
+          400,
+        ),
+      );
     }
   } catch (error) {
     // Catch-all for unexpected database crashes or server issues
-    return res.status(500).json({
-      status: "error",
-      message: "An internal server error occurred",
-    });
+    return next(new AppError("An internal server error occurred", 500));
   }
 };
 

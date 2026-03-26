@@ -3,7 +3,7 @@ const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Course = require('../models/courseModel');
 const Notification = require('../models/notificationModel');
-const AppError = require('../utils/errorHandler');
+const { AppError } = require("../utils/errorHandler");
 
 // Get dashboard stats
 // adminController.js - getDashboardStats

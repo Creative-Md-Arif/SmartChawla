@@ -4,25 +4,11 @@ const couponController = require("../controllers/couponController");
 const { authenticate } = require("../middlewares/authMiddleware");
 const { authorize } = require("../middlewares/adminMiddleware");
 
-// ============================================
-// Public routes (no authentication required)
-// ============================================
-router.get("/validate", couponController.validateCoupon);
+router.get("/", couponController.getAllCoupons);
 
-// ============================================
-// Protected user routes (authentication required)
-// ============================================
 router.post("/apply", authenticate, couponController.applyCoupon);
 router.get("/my-coupons", authenticate, couponController.getUserCoupons);
 
-// ============================================
-// Admin routes (authentication + admin authorization)
-// ============================================
-
-// IMPORTANT: Place specific routes BEFORE parameterized routes
-// to avoid route conflicts (e.g., 'stats' being interpreted as ':code')
-
-// Get coupon statistics by ID
 router.get(
   "/:id/stats",
   authenticate,

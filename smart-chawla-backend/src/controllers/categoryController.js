@@ -2,7 +2,7 @@ const Category = require("../models/categoryModel");
 const Product = require("../models/productModel");
 const Course = require("../models/courseModel");
 const { cloudinary, uploadToCloudinary } = require("../config/cloudinary");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
 
 // Create category
@@ -381,14 +381,20 @@ exports.reorderCategories = async (req, res, next) => {
     }
 
     // categories should be an array of { id, displayOrder }
-    const updatePromises = categories.map((cat) => {
+    const updatePromises = [];
+
+    for (const cat of categories) {
       if (!cat.id || cat.displayOrder === undefined) {
-        throw new AppError("Each category must have id and displayOrder", 400);
+        return next(
+          new AppError("Each category must have id and displayOrder", 400),
+        );
       }
-      return Category.findByIdAndUpdate(cat.id, {
-        displayOrder: cat.displayOrder,
-      });
-    });
+      updatePromises.push(
+        Category.findByIdAndUpdate(cat.id, {
+          displayOrder: cat.displayOrder,
+        }),
+      );
+    }
 
     await Promise.all(updatePromises);
 

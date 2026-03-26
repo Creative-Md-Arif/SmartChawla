@@ -1,5 +1,5 @@
 // pages/user/Wishlist.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
@@ -9,84 +9,73 @@ import {
   ArrowRight, 
   ShoppingBag,
   BookOpen,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { 
   removeFromWishlist, 
   moveToCart,
-  clearWishlist 
+  clearWishlist,
+  selectWishlistItems,
+  selectWishlistCount
 } from '../../redux/slices/wishlistSlice';
 import { addToCart } from '../../redux/slices/cartSlice';
 import { formatPrice } from '../../utils/formatters';
-import axiosInstance from '../../utils/axiosInstance';
 
 const Wishlist = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, itemCount } = useSelector((state) => state.wishlist);
-  const { isAuthenticated } = useSelector((state) => state.auth);
   
-  const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
+  // Only Redux state - no backend sync
+  const items = useSelector(selectWishlistItems);
+  const itemCount = useSelector(selectWishlistCount);
+  
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [removingItem, setRemovingItem] = useState(null);
 
-  // Sync with server if authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      syncWishlistWithServer();
-    }
-  }, [isAuthenticated]);
-
-  const syncWishlistWithServer = async () => {
-    try {
-      setSyncing(true);
-      const response = await axiosInstance.get('/wishlist');
-      // Merge server wishlist with local
-      // dispatch(syncWishlist(response.data.items));
-    } catch (error) {
-      console.error('Error syncing wishlist:', error);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleRemove = (itemId, itemType, name) => {
-    if (window.confirm(`"${name}" আপনার wishlist থেকে সরাবেন?`)) {
-      dispatch(removeFromWishlist({ itemId, itemType }));
-      
-      // If authenticated, also remove from server
-      if (isAuthenticated) {
-        axiosInstance.delete(`/wishlist/${itemType}/${itemId}`).catch(console.error);
-      }
-    }
+  const handleRemove = (item) => {
+    setRemovingItem(`${item.itemType}-${item.itemId || item._id}`);
+    
+    // Small delay for visual feedback
+    setTimeout(() => {
+      dispatch(removeFromWishlist({ 
+        itemId: item.itemId || item._id, 
+        itemType: item.itemType 
+      }));
+      setRemovingItem(null);
+    }, 200);
   };
 
   const handleMoveToCart = (item) => {
+    // Add to cart
     dispatch(addToCart({
       itemType: item.itemType,
-      itemId: item.itemId,
+      itemId: item.itemId || item._id,
       name: item.name,
       price: item.price,
       image: item.image,
       quantity: 1,
     }));
     
-    dispatch(moveToCart({ itemId: item.itemId, itemType: item.itemType }));
+    // Remove from wishlist
+    dispatch(moveToCart({ 
+      itemId: item.itemId || item._id, 
+      itemType: item.itemType 
+    }));
     
-    // Show success message
-    alert(`${item.name} কার্টে যোগ করা হয়েছে!`);
+    // Optional: Show toast notification
+    showNotification(`${item.name} কার্টে যোগ করা হয়েছে!`);
   };
 
   const handleClearWishlist = () => {
-    if (window.confirm('আপনি কি নিশ্চিত যে সম্পূর্ণ wishlist খালি করতে চান?')) {
-      dispatch(clearWishlist());
-      
-      if (isAuthenticated) {
-        axiosInstance.delete('/wishlist/clear').catch(console.error);
-      }
-      
-      setShowClearConfirm(false);
-    }
+    dispatch(clearWishlist());
+    setShowClearConfirm(false);
+  };
+
+  // Simple notification helper
+  const showNotification = (message) => {
+    // You can replace this with your toast library
+    alert(message);
   };
 
   const getItemIcon = (itemType) => {
@@ -94,7 +83,7 @@ const Wishlist = () => {
   };
 
   const getItemLink = (item) => {
-    return `/${item.itemType}/${item.slug}`;
+    return `/${item.itemType}s/${item.slug}`;
   };
 
   // Empty state
@@ -148,18 +137,13 @@ const Wishlist = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-3 mt-4 sm:mt-0">
-            {syncing && (
-              <span className="text-sm text-gray-500">সিঙ্ক হচ্ছে...</span>
-            )}
-            <button
-              onClick={() => setShowClearConfirm(true)}
-              className="flex items-center px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              সব খালি করুন
-            </button>
-          </div>
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="flex items-center px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors mt-4 sm:mt-0"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            সব খালি করুন
+          </button>
         </div>
 
         {/* Clear Confirmation Modal */}
@@ -195,11 +179,15 @@ const Wishlist = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => {
             const ItemIcon = getItemIcon(item.itemType);
+            const itemKey = `${item.itemType}-${item.itemId || item._id}`;
+            const isRemoving = removingItem === itemKey;
             
             return (
               <div
-                key={`${item.itemType}-${item.itemId}`}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-shadow"
+                key={itemKey}
+                className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-all duration-200 ${
+                  isRemoving ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+                }`}
               >
                 {/* Image */}
                 <Link 
@@ -210,6 +198,9 @@ const Wishlist = () => {
                     src={item.image || '/placeholder.jpg'}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.src = '/placeholder.jpg';
+                    }}
                   />
                   <div className="absolute top-3 left-3">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -221,17 +212,18 @@ const Wishlist = () => {
                       {item.itemType === 'course' ? 'কোর্স' : 'প্রোডাক্ট'}
                     </span>
                   </div>
-                  <div className="absolute top-3 right-3">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemove(item.itemId, item.itemType, item.name);
-                      }}
-                      className="p-2 bg-white/90 rounded-full shadow-sm text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  
+                  {/* Quick remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleRemove(item);
+                    }}
+                    disabled={isRemoving}
+                    className="absolute top-3 right-3 p-2 bg-white/90 rounded-full shadow-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </Link>
 
                 {/* Content */}
@@ -257,13 +249,23 @@ const Wishlist = () => {
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => handleMoveToCart(item)}
-                    className="w-full flex items-center justify-center py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    কার্টে যোগ করুন
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleMoveToCart(item)}
+                      className="flex-1 flex items-center justify-center py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      কার্টে যোগ করুন
+                    </button>
+                    
+                    <button
+                      onClick={() => handleRemove(item)}
+                      disabled={isRemoving}
+                      className="p-2.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

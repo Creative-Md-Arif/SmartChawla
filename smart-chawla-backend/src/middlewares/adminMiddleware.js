@@ -1,4 +1,4 @@
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 
 // Authorize specific roles - admin has access to everything
 exports.authorize = (...roles) => {

@@ -16,9 +16,13 @@ import {
   Sparkles,
   TrendingUp,
   Zap,
+  Clock,
+  TrendingUp as TrendingIcon,
+  XCircle,
 } from "lucide-react";
 import { logout } from "../../redux/slices/authSlice";
 import CategoryDropdown from "../category/CategoryDropdown";
+import axiosInstance from "../../utils/axiosInstance"; // axiosInstance ইউজ করুন
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -29,6 +33,9 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [hoveredNav, setHoveredNav] = useState(null);
+  const [trendingSearches, setTrendingSearches] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,6 +50,54 @@ const Navbar = () => {
 
   const cartItemCount = cartItems.length;
   const wishlistCount = wishlistItems.length;
+
+  // Load recent searches from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('recentSearches');
+    if (saved) {
+      setRecentSearches(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save recent searches to localStorage
+  const saveRecentSearch = (query) => {
+    if (!query.trim()) return;
+    const newRecent = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
+    setRecentSearches(newRecent);
+    localStorage.setItem('recentSearches', JSON.stringify(newRecent));
+  };
+
+  // Remove from recent searches
+  const removeRecentSearch = (e, query) => {
+    e.stopPropagation();
+    const newRecent = recentSearches.filter(s => s !== query);
+    setRecentSearches(newRecent);
+    localStorage.setItem('recentSearches', JSON.stringify(newRecent));
+  };
+
+  // Clear all recent searches
+  const clearAllRecent = () => {
+    setRecentSearches([]);
+    localStorage.removeItem('recentSearches');
+  };
+
+  // Fetch trending searches when search is focused but empty
+  useEffect(() => {
+    if (isSearchFocused && searchQuery.length === 0 && trendingSearches.length === 0) {
+      fetchTrendingSearches();
+    }
+  }, [isSearchFocused, searchQuery]);
+
+  const fetchTrendingSearches = async () => {
+    try {
+      const response = await axiosInstance.get('/products/search-suggestions?type=trending&limit=5');
+      if (response.data.success) {
+        setTrendingSearches(response.data.trending || []);
+      }
+    } catch (error) {
+      console.error("Trending fetch error:", error);
+    }
+  };
 
   // Handle scroll with smooth transition
   useEffect(() => {
@@ -91,27 +146,53 @@ const Navbar = () => {
   }, [searchQuery]);
 
   const fetchSearchSuggestions = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/v1/products/search-suggestions?q=${searchQuery}`,
+      const response = await axiosInstance.get(
+        `/products/search-suggestions?q=${encodeURIComponent(searchQuery)}&limit=5&type=autocomplete`
       );
-      const data = await response.json();
-      if (data.success) {
-        setSearchSuggestions(data.products);
+      if (response.data.success) {
+        setSearchSuggestions(response.data.products || []);
       }
     } catch (error) {
       console.error("Search error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
+      saveRecentSearch(searchQuery.trim());
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setShowSuggestions(false);
       setSearchQuery("");
       setIsSearchFocused(false);
     }
+  };
+
+  const handleSuggestionClick = (product) => {
+    saveRecentSearch(product.name?.bn || product.name);
+    navigate(`/product/${product.slug}`);
+    setShowSuggestions(false);
+    setSearchQuery("");
+    setIsSearchFocused(false);
+  };
+
+  const handleRecentClick = (query) => {
+    setSearchQuery(query);
+    navigate(`/shop?search=${encodeURIComponent(query)}`);
+    setShowSuggestions(false);
+    setIsSearchFocused(false);
+  };
+
+  const handleTrendingClick = (query) => {
+    setSearchQuery(query);
+    saveRecentSearch(query);
+    navigate(`/shop?search=${encodeURIComponent(query)}`);
+    setShowSuggestions(false);
+    setIsSearchFocused(false);
   };
 
   const handleLogout = () => {
@@ -126,11 +207,8 @@ const Navbar = () => {
     { name: "Courses", href: "/courses", icon: Zap },
   ];
 
-  // Animation variants
-  const menuVariants = {
-    hidden: { opacity: 0, y: -10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1 },
-  };
+  // Check if we should show empty state (recent + trending)
+  const showEmptyState = isSearchFocused && searchQuery.length < 2 && !isLoading;
 
   return (
     <nav
@@ -155,7 +233,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation with hover animations */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -179,21 +257,13 @@ const Navbar = () => {
                     } ${isActive ? "text-primary-600" : "text-neutral-400 group-hover:text-primary-500"}`}
                   />
                   <span>{link.name}</span>
-
-                  {/* Active indicator */}
                   {isActive && (
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary-500 rounded-full animate-fade-in" />
                   )}
-
-                  {/* Hover glow effect */}
-                  <span
-                    className={`absolute inset-0 rounded-xl bg-gradient-to-r from-primary-400/0 via-primary-400/10 to-primary-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isActive ? "hidden" : ""}`}
-                  />
                 </Link>
               );
             })}
 
-            {/* Category Dropdown with enhanced styling */}
             <div className="relative group">
               <CategoryDropdown />
             </div>
@@ -232,61 +302,167 @@ const Navbar = () => {
                       : "text-neutral-400 group-hover:text-primary-400"
                   }`}
                 />
-
-                {/* Search shortcut hint */}
-                <kbd
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block px-2 py-0.5 text-xs font-mono text-neutral-400 bg-neutral-100 rounded-md border border-neutral-200 transition-opacity duration-300 ${
-                    isSearchFocused ? "opacity-0" : "opacity-100"
-                  }`}
-                >
-                  ⌘K
-                </kbd>
+                
+                {/* Loading spinner */}
+                {isLoading && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin" />
+                  </div>
+                )}
               </div>
             </form>
 
-            {/* Enhanced Search Suggestions */}
-            {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-premium border border-primary-100 overflow-hidden animate-slide-up">
-                <div className="px-4 py-2 bg-primary-50/50 border-b border-primary-100">
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wider">
-                    সাজেশন
-                  </p>
-                </div>
-                {searchSuggestions.map((product, index) => (
-                  <Link
-                    key={product._id}
-                    to={`/product/${product.slug}`}
-                    onClick={() => {
-                      setShowSuggestions(false);
-                      setSearchQuery("");
-                      setIsSearchFocused(false);
-                    }}
-                    className="flex items-center px-4 py-3 hover:bg-primary-50 transition-all duration-200 group border-b border-neutral-50 last:border-0"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 shadow-soft group-hover:shadow-md transition-shadow duration-200">
-                      <img
-                        src={product.images?.[0]?.url}
-                        alt={product.name}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <p className="text-sm font-medium text-neutral-800 group-hover:text-primary-600 transition-colors line-clamp-1">
-                        {product.name}
+            {/* Enhanced Search Dropdown */}
+            {showSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-premium border border-primary-100 overflow-hidden animate-slide-up max-h-[480px] overflow-y-auto">
+                
+                {/* Search Results */}
+                {searchQuery.length >= 2 && (
+                  <>
+                    <div className="px-4 py-2 bg-primary-50/50 border-b border-primary-100 flex items-center justify-between">
+                      <p className="text-xs font-medium text-primary-600 uppercase tracking-wider font-bangla">
+                        সাজেশন
                       </p>
-                      <p className="text-sm font-bold text-primary-600 mt-0.5">
-                        ৳{product.price}
-                      </p>
+                      {searchSuggestions.length > 0 && (
+                        <Link 
+                          to={`/shop?search=${encodeURIComponent(searchQuery)}`}
+                          onClick={() => {
+                            saveRecentSearch(searchQuery);
+                            setShowSuggestions(false);
+                            setSearchQuery("");
+                          }}
+                          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          সব দেখুন →
+                        </Link>
+                      )}
                     </div>
-                    <TrendingUp className="w-4 h-4 text-neutral-300 group-hover:text-primary-400 transition-colors" />
-                  </Link>
-                ))}
+                    
+                    {searchSuggestions.length === 0 && !isLoading ? (
+                      <div className="px-4 py-8 text-center">
+                        <p className="text-neutral-500 font-bangla text-sm">কোনো পণ্য পাওয়া যায়নি</p>
+                        <Link 
+                          to={`/shop?search=${encodeURIComponent(searchQuery)}`}
+                          className="text-primary-600 text-sm mt-2 inline-block hover:underline"
+                        >
+                          "{searchQuery}" দিয়ে সার্চ করুন →
+                        </Link>
+                      </div>
+                    ) : (
+                      searchSuggestions.map((product, index) => (
+                        <div
+                          key={product._id}
+                          onClick={() => handleSuggestionClick(product)}
+                          className="flex items-center px-4 py-3 hover:bg-primary-50 transition-all duration-200 group border-b border-neutral-50 last:border-0 cursor-pointer"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 shadow-soft group-hover:shadow-md transition-shadow duration-200 flex-shrink-0">
+                            <img
+                              src={product.images?.[0]?.url || '/placeholder-product.png'}
+                              alt={product.name?.bn || product.name}
+                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                            />
+                          </div>
+                          <div className="ml-3 flex-1 min-w-0">
+                            <p className="text-sm font-medium text-neutral-800 group-hover:text-primary-600 transition-colors line-clamp-1 font-bangla">
+                              {product.name?.bn || product.name}
+                            </p>
+                            <p className="text-sm font-bold text-primary-600 mt-0.5">
+                              ৳{product.discountPrice || product.price}
+                              {product.discountPrice && (
+                                <span className="text-xs text-neutral-400 line-through ml-2 font-normal">
+                                  ৳{product.price}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          <TrendingUp className="w-4 h-4 text-neutral-300 group-hover:text-primary-400 transition-colors flex-shrink-0" />
+                        </div>
+                      ))
+                    )}
+                  </>
+                )}
+
+                {/* Empty State - Recent + Trending */}
+                {showEmptyState && (
+                  <div className="py-2">
+                    {/* Recent Searches */}
+                    {recentSearches.length > 0 && (
+                      <div className="mb-4">
+                        <div className="px-4 py-2 bg-neutral-50 border-b border-neutral-100 flex items-center justify-between">
+                          <p className="text-xs font-medium text-neutral-600 uppercase tracking-wider font-bangla flex items-center gap-2">
+                            <Clock className="w-3 h-3" />
+                            সাম্প্রতিক সার্চ
+                          </p>
+                          <button 
+                            onClick={clearAllRecent}
+                            className="text-xs text-red-500 hover:text-red-600"
+                          >
+                            মুছুন
+                          </button>
+                        </div>
+                        {recentSearches.map((query, index) => (
+                          <div
+                            key={index}
+                            onClick={() => handleRecentClick(query)}
+                            className="flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Clock className="w-4 h-4 text-neutral-400" />
+                              <span className="text-sm text-neutral-700 font-bangla">{query}</span>
+                            </div>
+                            <button 
+                              onClick={(e) => removeRecentSearch(e, query)}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded-full transition-all"
+                            >
+                              <XCircle className="w-4 h-4 text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Trending Searches */}
+                    <div>
+                      <div className="px-4 py-2 bg-primary-50/50 border-b border-primary-100">
+                        <p className="text-xs font-medium text-primary-600 uppercase tracking-wider font-bangla flex items-center gap-2">
+                          <TrendingIcon className="w-3 h-3" />
+                          ট্রেন্ডিং সার্চ
+                        </p>
+                      </div>
+                      {trendingSearches.length > 0 ? (
+                        trendingSearches.map((item, index) => (
+                          <div
+                            key={index}
+                            onClick={() => handleTrendingClick(item.query)}
+                            className="flex items-center px-4 py-2.5 hover:bg-primary-50 transition-colors cursor-pointer"
+                          >
+                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold mr-3 ${
+                              index < 3 
+                                ? "bg-primary-100 text-primary-600" 
+                                : "bg-neutral-100 text-neutral-600"
+                            }`}>
+                              {index + 1}
+                            </span>
+                            <span className="text-sm text-neutral-700 font-bangla flex-1">{item.query}</span>
+                            <span className="text-xs text-neutral-400">
+                              {item.count} বার
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-4 text-center text-sm text-neutral-400 font-bangla">
+                          লোড হচ্ছে...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Right Actions with enhanced interactions */}
+          {/* Right Actions */}
           <div className="flex items-center space-x-2 lg:space-x-3">
             {/* Wishlist */}
             <Link
@@ -301,7 +477,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* Cart with enhanced badge */}
+            {/* Cart */}
             <Link
               to="/cart"
               className="relative p-2.5 rounded-xl text-neutral-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300 group"
@@ -314,7 +490,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* User Menu with enhanced dropdown */}
+            {/* User Menu */}
             {isAuthenticated ? (
               <div ref={userMenuRef} className="relative ml-2">
                 <button
@@ -347,10 +523,9 @@ const Navbar = () => {
                   />
                 </button>
 
-                {/* Enhanced User Dropdown */}
+                {/* User Dropdown */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-3 w-72 bg-white rounded-2xl shadow-premium border border-primary-100 overflow-hidden animate-slide-up">
-                    {/* User Header */}
                     <div className="px-5 py-4 bg-gradient-to-br from-primary-50 to-white border-b border-primary-100">
                       <div className="flex items-center space-x-3">
                         {user?.avatar ? (
@@ -375,7 +550,6 @@ const Navbar = () => {
                       </div>
                     </div>
 
-                    {/* Menu Items */}
                     <div className="p-2 space-y-1">
                       <Link
                         to="/dashboard"
@@ -384,7 +558,7 @@ const Navbar = () => {
                         <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center mr-3 group-hover:bg-primary-200 transition-colors">
                           <LayoutDashboard className="w-4 h-4 text-primary-600" />
                         </div>
-                        <span className="font-medium">ড্যাশবোর্ড</span>
+                        <span className="font-medium font-bangla">ড্যাশবোর্ড</span>
                       </Link>
 
                       <Link
@@ -394,7 +568,7 @@ const Navbar = () => {
                         <div className="w-8 h-8 rounded-lg bg-secondary-50 flex items-center justify-center mr-3 group-hover:bg-secondary-100 transition-colors">
                           <Package className="w-4 h-4 text-secondary-600" />
                         </div>
-                        <span className="font-medium">আমার অর্ডার</span>
+                        <span className="font-medium font-bangla">আমার অর্ডার</span>
                       </Link>
 
                       <Link
@@ -404,7 +578,7 @@ const Navbar = () => {
                         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mr-3 group-hover:bg-amber-100 transition-colors">
                           <BookOpen className="w-4 h-4 text-amber-600" />
                         </div>
-                        <span className="font-medium">আমার কোর্স</span>
+                        <span className="font-medium font-bangla">আমার কোর্স</span>
                       </Link>
 
                       <Link
@@ -415,7 +589,7 @@ const Navbar = () => {
                           <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center mr-3 group-hover:bg-rose-100 transition-colors">
                             <Heart className="w-4 h-4 text-rose-500" />
                           </div>
-                          <span className="font-medium">উইশলিস্ট</span>
+                          <span className="font-medium font-bangla">উইশলিস্ট</span>
                         </div>
                         {wishlistCount > 0 && (
                           <span className="px-2 py-0.5 text-xs font-medium bg-rose-100 text-rose-600 rounded-full">
@@ -432,13 +606,12 @@ const Navbar = () => {
                           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center mr-3 group-hover:bg-primary-200 transition-colors">
                             <LayoutDashboard className="w-4 h-4 text-primary-600" />
                           </div>
-                          <span className="font-medium">এডমিন প্যানেল</span>
+                          <span className="font-medium font-bangla">এডমিন প্যানেল</span>
                           <Zap className="w-3 h-3 ml-auto text-primary-400" />
                         </Link>
                       )}
                     </div>
 
-                    {/* Logout */}
                     <div className="p-2 border-t border-neutral-100">
                       <button
                         onClick={handleLogout}
@@ -447,7 +620,7 @@ const Navbar = () => {
                         <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center mr-3 group-hover:bg-red-100 transition-colors">
                           <LogOut className="w-4 h-4 text-red-500" />
                         </div>
-                        <span className="font-medium">লগআউট</span>
+                        <span className="font-medium font-bangla">লগআউট</span>
                       </button>
                     </div>
                   </div>
@@ -456,14 +629,14 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="hidden md:flex items-center px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-glow transform hover:-translate-y-0.5 font-medium text-sm"
+                className="hidden md:flex items-center px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-lg hover:shadow-glow transform hover:-translate-y-0.5 font-medium text-sm font-bangla"
               >
                 <User className="w-4 h-4 mr-2" />
                 লগইন
               </Link>
             )}
 
-            {/* Mobile Menu Button with animation */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2.5 rounded-xl text-neutral-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
@@ -484,7 +657,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Enhanced Mobile Menu */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-primary-100 shadow-premium animate-slide-up">
           <div className="px-4 py-6 space-y-4 max-h-[calc(100vh-5rem)] overflow-y-auto">
@@ -551,14 +724,14 @@ const Navbar = () => {
               <div className="pt-4 border-t border-neutral-100 space-y-3">
                 <Link
                   to="/login"
-                  className="flex items-center justify-center w-full px-4 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium shadow-lg"
+                  className="flex items-center justify-center w-full px-4 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium shadow-lg font-bangla"
                 >
                   <User className="w-5 h-5 mr-2" />
                   লগইন
                 </Link>
                 <Link
                   to="/register"
-                  className="flex items-center justify-center w-full px-4 py-3.5 border-2 border-primary-200 text-primary-600 rounded-xl font-medium hover:bg-primary-50 transition-colors"
+                  className="flex items-center justify-center w-full px-4 py-3.5 border-2 border-primary-200 text-primary-600 rounded-xl font-medium hover:bg-primary-50 transition-colors font-bangla"
                 >
                   নতুন অ্যাকাউন্ট
                 </Link>

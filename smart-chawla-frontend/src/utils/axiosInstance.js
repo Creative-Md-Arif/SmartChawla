@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -80,10 +79,8 @@ export const uploadWithProgress = (
     method,
     url,
     data: formData,
-    // টাইমআউট স্পেসিফিকভাবে বড় ফাইলের জন্য বাড়িয়ে দিচ্ছি
-    timeout: 30 * 60 * 1000, // ৩০ মিনিট
+    timeout: 30 * 60 * 1000,
     onUploadProgress: (progressEvent) => {
-      // মোট সাইজ পাওয়া গেলে প্রগ্রেস ক্যালকুলেট করুন
       const total = progressEvent.total || formData.size;
       if (total) {
         const percentCompleted = Math.round(

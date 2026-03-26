@@ -16,11 +16,11 @@ const CategoryList = lazy(() => import("../pages/public/CategoryList"));
 const CategoryProducts = lazy(() => import("../pages/public/CategoryProducts"));
 
 // Auth Pages
-const Login = lazy(() => import("../pages/auth/Login"));
 const Register = lazy(() => import("../pages/auth/Register"));
+const OTPVerification = lazy(() => import("../pages/auth/OTPVerification"));
+const Login = lazy(() => import("../pages/auth/Login"));
 const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
-const VerifyEmail = lazy(() => import("../pages/auth/VerifyEmail"));
 
 // User Pages
 const UserDashboard = lazy(() => import("../pages/user/UserDashboard"));
@@ -58,11 +58,11 @@ const AppRoutes = () => {
         <Route path="/category/:slug" element={<CategoryProducts />} />
 
         {/* Auth Routes */}
-        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
         {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
@@ -77,7 +77,7 @@ const AppRoutes = () => {
 
         {/* Admin Routes */}
         <Route element={<AdminRoute />}>
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/products" element={<ManageProducts />} />
           <Route path="/admin/courses" element={<ManageCourses />} />
@@ -85,11 +85,8 @@ const AppRoutes = () => {
           <Route path="/admin/categories" element={<ManageCategories />} />
           <Route path="/admin/banners" element={<ManageBanners />} />
           <Route path="/admin/coupons" element={<ManageCoupons />} />
-           <Route path="/admin/order-list" element={<ManageOrders />} />
-           <Route path="/admin/userlist" element={<UserList />} />
-            
-           
-
+          <Route path="/admin/order-list" element={<ManageOrders />} />
+          <Route path="/admin/userlist" element={<UserList />} />
         </Route>
 
         {/* 404 */}

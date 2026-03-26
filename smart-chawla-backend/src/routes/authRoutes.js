@@ -9,7 +9,11 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password/:token', authController.resetPassword);
-router.get('/verify-email/:token', authController.verifyEmail);
+
+router.post("/verify-otp", authController.verifyEmailWithOTP);
+router.post("/resend-otp", authController.resendOTP);
+
+
 router.post('/refresh-token', authController.refreshToken);
 
 // Protected routes
@@ -29,10 +33,6 @@ router.delete("/addresses/:id", authenticate, authController.deleteAddress);
 
 router.patch('/change-password', authenticate, authController.changePassword);
 
-router.post(
-  "/resend-verification",
-  authenticate,
-  authController.resendVerification,
-);
+router.post("/resend-verification", authenticate, authController.resendOTP);
 
 module.exports = router;

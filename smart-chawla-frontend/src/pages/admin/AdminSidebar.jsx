@@ -21,6 +21,8 @@ import {
   ChevronLeft,
   Menu,
   X,
+  ChevronRight, // 🔴 [NEW]
+  Home, // 🔴 [NEW]
 } from "lucide-react";
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen, navbarHeight = 72 }) => {
@@ -33,6 +35,27 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, navbarHeight = 72 }) => {
     marketing: false,
     users: false,
   });
+
+  // 🔴 [NEW] Breadcrumb for sidebar header
+  const getCurrentPageInfo = () => {
+    const path = location.pathname;
+    const pageMap = {
+      '/admin/dashboard': { label: 'Dashboard', labelBn: 'ড্যাশবোর্ড', icon: LayoutDashboard },
+      '/admin/order-list': { label: 'Orders', labelBn: 'অর্ডারসমূহ', icon: ShoppingBag },
+      '/admin/products': { label: 'Products', labelBn: 'প্রোডাক্টস', icon: Package },
+      '/admin/courses': { label: 'Courses', labelBn: 'কোর্সসমূহ', icon: GraduationCap },
+      '/admin/categories': { label: 'Categories', labelBn: 'ক্যাটাগরিস', icon: Layers },
+      '/admin/payments': { label: 'Payments', labelBn: 'পেমেন্টস', icon: CreditCard },
+      '/admin/coupons': { label: 'Coupons', labelBn: 'কুপনস', icon: Percent },
+      '/admin/sales-report': { label: 'Sales Report', labelBn: 'বিক্রয় রিপোর্ট', icon: FileText },
+      '/admin/banners': { label: 'Banners', labelBn: 'ব্যানারস', icon: ImageIcon },
+      '/admin/notifications': { label: 'Notifications', labelBn: 'নোটিফিকেশন', icon: Bell },
+      '/admin/userlist': { label: 'All Users', labelBn: 'ব্যবহারকারী', icon: Users },
+    };
+    return pageMap[path] || { label: 'Admin', labelBn: 'অ্যাডমিন', icon: Home };
+  };
+
+  const currentPage = getCurrentPageInfo();
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -182,17 +205,17 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, navbarHeight = 72 }) => {
 
   return (
     <div className="">
-      {/* Overlay */}
+      {/* Overlay - Improved z-index */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 xl:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] xl:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Navbar হাইট অনুযায়ী top position */}
+      {/* Sidebar - Responsive improvements */}
       <aside
-        className={`fixed left-0 z-50 mt-[12px] border-t-2 bg-white border-r border-neutral-200 flex flex-col transition-all duration-300 ease-out shadow-xl ${
+        className={`fixed left-0 z-[70] mt-[12px] border-t-2 bg-white border-r border-neutral-200 flex flex-col transition-all duration-300 ease-out shadow-2xl ${
           sidebarOpen
             ? "w-72 translate-x-0"
             : "w-0 -translate-x-full xl:w-20 xl:translate-x-0 overflow-hidden xl:overflow-visible"
@@ -202,6 +225,23 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen, navbarHeight = 72 }) => {
           height: `calc(100vh - ${navbarHeight}px)`,
         }}
       >
+        {/* 🔴 [NEW] Breadcrumb Header - Only when expanded */}
+        {sidebarOpen && (
+          <div className="px-4 py-3 bg-gradient-to-r from-violet-50 to-white border-b border-violet-100">
+            <div className="flex items-center gap-2 text-sm">
+              <Home className="w-4 h-4 text-violet-500" />
+              <ChevronRight className="w-3 h-3 text-neutral-400" />
+              <currentPage.icon className="w-4 h-4 text-violet-600" />
+              <span className="font-medium text-violet-700 truncate">
+                {currentPage.labelBn}
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 mt-0.5 ml-6">
+              {currentPage.label}
+            </p>
+          </div>
+        )}
+
         {/* Toggle Button - Desktop only */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}

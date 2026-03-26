@@ -1,6 +1,6 @@
 const Banner = require("../models/bannerModel");
 const { cloudinary, uploadToCloudinary } = require("../config/cloudinary");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
 
 // Create banner

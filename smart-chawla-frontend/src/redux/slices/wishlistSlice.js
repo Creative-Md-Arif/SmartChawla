@@ -1,21 +1,29 @@
-import { createSlice } from "@reduxjs/toolkit";
+// redux/slices/wishlistSlice.js
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-// Load wishlist from localStorage
+// Load from localStorage
 const loadWishlistFromStorage = () => {
   try {
-    const savedWishlist = localStorage.getItem("wishlist");
-    return savedWishlist
-      ? JSON.parse(savedWishlist)
-      : { items: [], itemCount: 0 };
+    const saved = localStorage.getItem("smart_chawla_wishlist");
+    if (saved) {
+      return JSON.parse(saved);
+    }
   } catch (error) {
-    return { items: [], itemCount: 0 };
+    console.error("Error loading wishlist:", error);
   }
+  return { items: [], itemCount: 0 };
 };
 
-// Save wishlist to localStorage
-const saveWishlistToStorage = (wishlist) => {
+// Save to localStorage
+const saveToStorage = (state) => {
   try {
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+    localStorage.setItem(
+      "smart_chawla_wishlist",
+      JSON.stringify({
+        items: state.items,
+        itemCount: state.itemCount,
+      }),
+    );
   } catch (error) {
     console.error("Error saving wishlist:", error);
   }
@@ -27,59 +35,72 @@ const wishlistSlice = createSlice({
   name: "wishlist",
   initialState,
   reducers: {
+    // Add item to wishlist
     addToWishlist: (state, action) => {
-      const { itemType, itemId, name, price, image, slug, description } =
+      const { itemType, itemId, name, price, image, slug, description, _id } =
         action.payload;
 
-      // Check if item already exists
-      const existingItem = state.items.find(
-        (item) => item.itemId === itemId && item.itemType === itemType,
+      // Use _id or itemId (handle both formats)
+      const id = itemId || _id;
+
+      const exists = state.items.find(
+        (item) =>
+          (item.itemId === id || item._id === id) && item.itemType === itemType,
       );
 
-      if (!existingItem) {
+      if (!exists) {
         state.items.push({
-          itemType, // 'product' or 'course'
-          itemId,
+          itemType,
+          itemId: id,
+          _id: id,
           name,
           price,
           image,
-          slug, // For linking to detail page
+          slug,
           description: description || "",
           addedAt: new Date().toISOString(),
         });
-
         state.itemCount = state.items.length;
-        saveWishlistToStorage(state);
+        saveToStorage(state);
       }
     },
 
+    // Remove from wishlist
     removeFromWishlist: (state, action) => {
-      const { itemId, itemType } = action.payload;
+      const { itemId, _id, itemType } = action.payload;
+      const id = itemId || _id;
 
       state.items = state.items.filter(
-        (item) => !(item.itemId === itemId && item.itemType === itemType),
+        (item) =>
+          !(
+            (item.itemId === id || item._id === id) &&
+            item.itemType === itemType
+          ),
       );
-
       state.itemCount = state.items.length;
-      saveWishlistToStorage(state);
+      saveToStorage(state);
     },
 
+    // Toggle wishlist (add if not exists, remove if exists)
     toggleWishlist: (state, action) => {
-      const { itemType, itemId, name, price, image, slug, description } =
+      const { itemType, itemId, _id, name, price, image, slug, description } =
         action.payload;
+      const id = itemId || _id;
 
-      const existingItemIndex = state.items.findIndex(
-        (item) => item.itemId === itemId && item.itemType === itemType,
+      const index = state.items.findIndex(
+        (item) =>
+          (item.itemId === id || item._id === id) && item.itemType === itemType,
       );
 
-      if (existingItemIndex >= 0) {
-        // Remove if exists
-        state.items.splice(existingItemIndex, 1);
+      if (index >= 0) {
+        // Remove
+        state.items.splice(index, 1);
       } else {
-        // Add if not exists
+        // Add
         state.items.push({
           itemType,
-          itemId,
+          itemId: id,
+          _id: id,
           name,
           price,
           image,
@@ -90,73 +111,87 @@ const wishlistSlice = createSlice({
       }
 
       state.itemCount = state.items.length;
-      saveWishlistToStorage(state);
+      saveToStorage(state);
     },
 
-    isInWishlist: (state, action) => {
-      const { itemId, itemType } = action.payload;
-      return state.items.some(
-        (item) => item.itemId === itemId && item.itemType === itemType,
-      );
-    },
-
+    // Clear entire wishlist
     clearWishlist: (state) => {
       state.items = [];
       state.itemCount = 0;
-      saveWishlistToStorage(state);
+      saveToStorage(state);
     },
 
+    // Move item to cart (remove from wishlist)
     moveToCart: (state, action) => {
-      const { itemId, itemType } = action.payload;
+      const { itemId, _id, itemType } = action.payload;
+      const id = itemId || _id;
 
-      // Remove from wishlist (cart slice এ add করতে হবে separately)
       state.items = state.items.filter(
-        (item) => !(item.itemId === itemId && item.itemType === itemType),
+        (item) =>
+          !(
+            (item.itemId === id || item._id === id) &&
+            item.itemType === itemType
+          ),
       );
-
       state.itemCount = state.items.length;
-      saveWishlistToStorage(state);
+      saveToStorage(state);
     },
 
+    // Import wishlist (for bulk operations)
     setWishlist: (state, action) => {
-      state.items = action.payload.items || [];
-      state.itemCount = state.items.length;
-      saveWishlistToStorage(state);
+      const items = action.payload.items || action.payload || [];
+      state.items = items;
+      state.itemCount = items.length;
+      saveToStorage(state);
     },
 
-    // Sync with server (for logged in users)
-    syncWishlist: (state, action) => {
-      const serverWishlist = action.payload;
-      // Merge local and server wishlist
-      const mergedItems = [...state.items];
+    // Merge with another wishlist (avoid duplicates)
+    mergeWishlist: (state, action) => {
+      const newItems = action.payload.items || [];
 
-      serverWishlist.forEach((serverItem) => {
-        const exists = mergedItems.some(
+      newItems.forEach((newItem) => {
+        const id = newItem.itemId || newItem._id;
+        const exists = state.items.find(
           (item) =>
-            item.itemId === serverItem.itemId &&
-            item.itemType === serverItem.itemType,
+            (item.itemId === id || item._id === id) &&
+            item.itemType === newItem.itemType,
         );
+
         if (!exists) {
-          mergedItems.push(serverItem);
+          state.items.push({
+            ...newItem,
+            itemId: id,
+            _id: id,
+            addedAt: newItem.addedAt || new Date().toISOString(),
+          });
         }
       });
 
-      state.items = mergedItems;
-      state.itemCount = mergedItems.length;
-      saveWishlistToStorage(state);
+      state.itemCount = state.items.length;
+      saveToStorage(state);
     },
   },
 });
+
+// Selectors
+export const selectWishlistItems = (state) => state.wishlist.items;
+export const selectWishlistCount = (state) => state.wishlist.itemCount;
+export const selectIsInWishlist = (itemType, itemId) => (state) => {
+  return state.wishlist.items.some(
+    (item) =>
+      (item.itemId === itemId || item._id === itemId) &&
+      item.itemType === itemType,
+  );
+};
 
 export const {
   addToWishlist,
   removeFromWishlist,
   toggleWishlist,
-  isInWishlist,
   clearWishlist,
   moveToCart,
   setWishlist,
-  syncWishlist,
+  mergeWishlist,
 } = wishlistSlice.actions;
 
 export default wishlistSlice.reducer;

@@ -1,6 +1,6 @@
 const Coupon = require('../models/couponModel');
 const Order = require('../models/orderModel');
-const AppError = require('../utils/errorHandler');
+const { AppError } = require("../utils/errorHandler");
 
 // Create coupon
 exports.createCoupon = async (req, res, next) => {
@@ -156,19 +156,13 @@ exports.validateCoupon = async (req, res, next) => {
     const coupon = await Coupon.findOne({ code: code.toUpperCase() });
 
     if (!coupon) {
-      return res.status(200).json({
-        success: true,
-        valid: false,
-        reason: 'Invalid coupon code',
-      });
+     return next(new AppError("Invalid coupon code", 404));
     }
 
     if (!coupon.isValid()) {
-      return res.status(200).json({
-        success: true,
-        valid: false,
-        reason: 'Coupon has expired or is no longer active',
-      });
+      return next(
+        new AppError("Coupon has expired or is no longer active", 400),
+      );
     }
 
     if (userId) {
@@ -179,11 +173,7 @@ exports.validateCoupon = async (req, res, next) => {
 
       const userCheck = coupon.canUserUse(userId, orderCount);
       if (!userCheck.valid) {
-        return res.status(200).json({
-          success: true,
-          valid: false,
-          reason: userCheck.reason,
-        });
+        return next(new AppError(userCheck.reason, 400));
       }
     }
 
@@ -229,17 +219,12 @@ exports.applyCoupon = async (req, res, next) => {
     );
 
     if (!result.valid) {
-      return res.status(200).json({
-        success: true,
-        valid: false,
-        reason: result.reason,
-      });
+      return next(new AppError(result.reason, 400));
     }
 
-    // 🟢 MISSING: Actually apply the coupon usage
-    const coupon = await Coupon.findOne({ code: code.toUpperCase() });
-    await coupon.applyUsage(userId); // এটি যোগ করুন
 
+    const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+    await coupon.applyUsage(userId);
     res.status(200).json({
       success: true,
       valid: true,

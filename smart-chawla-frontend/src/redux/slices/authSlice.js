@@ -30,10 +30,47 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/auth/register", userData);
+      // OTP সিস্টেমে registration successful হলে token আসে না
+      // শুধু email আসে যেটা OTP verification এর জন্য লাগবে
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Registration failed",
+      );
+    }
+  },
+);
+
+// Verify OTP - নতুন thunk
+export const verifyOTP = createAsyncThunk(
+  "auth/verifyOTP",
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/auth/verify-otp", {
+        email,
+        otp,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "OTP verification failed",
+      );
+    }
+  },
+);
+
+// Resend OTP - নতুন thunk
+export const resendOTP = createAsyncThunk(
+  "auth/resendOTP",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/auth/resend-otp", {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to resend OTP",
       );
     }
   },
@@ -127,21 +164,6 @@ export const deleteAddress = createAsyncThunk(
   },
 );
 
-// Resend Verification
-export const resendVerification = createAsyncThunk(
-  "auth/resendVerification",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.post("/auth/resend-verification");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to send verification",
-      );
-    }
-  },
-);
-
 // ==================== SLICE ====================
 
 const initialState = {
@@ -151,8 +173,12 @@ const initialState = {
   token: localStorage.getItem("token"),
   refreshToken: localStorage.getItem("refreshToken"),
   isAuthenticated: !!localStorage.getItem("token"),
+  registrationEmail: null, // Store email during OTP verification flow
+  otpVerified: false,
   loading: false,
   error: null,
+  otpLoading: false, // Separate loading for OTP operations
+  otpError: null,
 };
 
 const authSlice = createSlice({
@@ -163,7 +189,6 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
       state.isAuthenticated = true;
-      // CRITICAL: Save to localStorage so data persists after refresh
       localStorage.setItem("user", JSON.stringify(action.payload));
     },
 
@@ -172,13 +197,22 @@ const authSlice = createSlice({
       state.token = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
+      state.registrationEmail = null;
+      state.otpVerified = false;
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     },
-
     clearError: (state) => {
       state.error = null;
+    },
+
+    setRegistrationEmail: (state, action) => {
+      state.registrationEmail = action.payload;
+    },
+
+    clearRegistrationEmail: (state) => {
+      state.registrationEmail = null;
     },
 
     // ADDED: Manual address update reducer for optimistic updates
@@ -217,15 +251,42 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload.token) {
-          state.user = action.payload.user;
-          state.token = action.payload.token;
-          state.isAuthenticated = true;
+        if (action.payload.email) {
+          state.registrationEmail = action.payload.email;
         }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // ========== VERIFY OTP ==========
+      .addCase(verifyOTP.pending, (state) => {
+        state.otpLoading = true;
+        state.otpError = null;
+      })
+
+      .addCase(verifyOTP.fulfilled, (state, action) => {
+        state.otpLoading = false;
+        state.otpVerified = true;
+        state.registrationEmail = null; // Clear after successful verification
+        // Note: User needs to login manually after OTP verification
+      })
+      .addCase(verifyOTP.rejected, (state, action) => {
+        state.otpLoading = false;
+        state.otpError = action.payload;
+      })
+
+      // ========== RESEND OTP ==========
+      .addCase(resendOTP.pending, (state) => {
+        state.otpLoading = true;
+        state.otpError = null;
+      })
+      .addCase(resendOTP.fulfilled, (state) => {
+        state.otpLoading = false;
+      })
+      .addCase(resendOTP.rejected, (state, action) => {
+        state.otpLoading = false;
+        state.otpError = action.payload;
       })
 
       // ========== FETCH PROFILE ==========
@@ -321,6 +382,12 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout, clearError, updateUserAddresses } =
-  authSlice.actions;
+export const {
+  setUser,
+  logout,
+  clearError,
+  setRegistrationEmail,
+  clearRegistrationEmail,
+  updateUserAddresses,
+} = authSlice.actions;
 export default authSlice.reducer;

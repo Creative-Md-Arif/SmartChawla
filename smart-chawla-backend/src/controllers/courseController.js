@@ -3,7 +3,7 @@ const Course = require("../models/courseModel");
 const User = require("../models/userModel");
 const { uploadToCloudinary, cloudinary } = require("../config/cloudinary");
 const fs = require("fs");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
 
 const formatMedia = (result) => ({

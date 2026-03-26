@@ -4,7 +4,7 @@ const {
   uploadToCloudinary,
   imageConfig,
 } = require("../config/cloudinary");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
 
 
@@ -15,7 +15,7 @@ exports.getAllProducts = async (req, res, next) => {
       page = 1,
       limit = 12,
       search,
-      category,
+      category, // Can be single ID or comma-separated IDs
       subCategory,
       minPrice,
       maxPrice,
@@ -35,7 +35,22 @@ exports.getAllProducts = async (req, res, next) => {
       ];
     }
 
-    if (category) filter.category = category;
+    // Fix: Handle multiple categories (comma-separated) or single category
+    if (category) {
+      const categoryIds = category
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (categoryIds.length === 1) {
+        // Single category
+        filter.category = categoryIds[0];
+      } else if (categoryIds.length > 1) {
+        // Multiple categories - use $in operator
+        filter.category = { $in: categoryIds };
+      }
+    }
+
     if (subCategory) filter.subCategory = subCategory;
     if (inStock === "true") filter.stock = { $gt: 0 };
     if (isFeatured === "true") filter.isFeatured = true;
@@ -471,20 +486,59 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-// Search products (autocomplete)
+
 exports.searchProducts = async (req, res, next) => {
   try {
-    const { q, limit = 10 } = req.query;
+    const { q, limit = 10, type = "full" } = req.query;
 
-    if (!q || q.length < 2) {
+    if (!q || q.length < 1) {
       return res.status(200).json({
         success: true,
         products: [],
       });
     }
 
-    // Try text search first, fallback to regex
+    const searchRegex = new RegExp(q, "i");
+    const limitNum = Math.min(20, parseInt(limit));
+
+    // Autocomplete mode - faster, limited fields
+    if (type === "autocomplete") {
+      const products = await Product.find(
+        {
+          isActive: true,
+          $or: [
+            { name: { $regex: `^${q}`, $options: "i" } },
+            { "name.bn": { $regex: `^${q}`, $options: "i" } },
+            { tags: { $in: [searchRegex] } },
+          ],
+        },
+        { name: 1, slug: 1, price: 1, discountPrice: 1, images: { $slice: 1 } },
+      )
+        .limit(limitNum)
+        .sort({ views: -1 })
+        .lean();
+
+      return res.status(200).json({
+        success: true,
+        type: "autocomplete",
+        query: q,
+        products,
+      });
+    }
+
+    // Full search mode
+    if (q.length < 2) {
+      return res.status(200).json({
+        success: true,
+        products: [],
+        query: q,
+      });
+    }
+
+    // Try text search first (if index exists)
     let products;
+    let searchMethod = "text";
+
     try {
       products = await Product.find(
         {
@@ -493,21 +547,50 @@ exports.searchProducts = async (req, res, next) => {
         },
         { score: { $meta: "textScore" } },
       )
+        .populate("category", "name slug")
         .sort({ score: { $meta: "textScore" } })
-        .limit(Number(limit))
-        .select("name slug price images");
+        .limit(limitNum)
+        .lean();
     } catch (textSearchError) {
-      // Fallback to regex if text index not set up
+      // Fallback to regex search
+      searchMethod = "regex";
       products = await Product.find({
-        name: { $regex: q, $options: "i" },
         isActive: true,
+        $or: [
+          { name: searchRegex },
+          { "name.bn": searchRegex },
+          { description: searchRegex },
+          { "description.bn": searchRegex },
+          { tags: { $in: [searchRegex] } },
+        ],
       })
-        .limit(Number(limit))
-        .select("name slug price images");
+        .populate("category", "name slug")
+        .sort({ views: -1, createdAt: -1 })
+        .limit(limitNum)
+        .lean();
+    }
+
+    // If no results, try fuzzy search (typo tolerance)
+    if (products.length === 0 && q.length > 3) {
+      const fuzzyRegex = new RegExp(q.split("").join(".?"), "i");
+      products = await Product.find({
+        isActive: true,
+        name: fuzzyRegex,
+      })
+        .populate("category", "name slug")
+        .limit(5)
+        .lean();
+
+      if (products.length > 0) {
+        searchMethod = "fuzzy";
+      }
     }
 
     res.status(200).json({
       success: true,
+      query: q,
+      method: searchMethod,
+      count: products.length,
       products,
     });
   } catch (error) {

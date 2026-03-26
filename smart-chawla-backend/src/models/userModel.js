@@ -95,11 +95,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    verificationToken: {
+    verificationOTP: {
       type: String,
       select: false,
     },
-    verificationTokenExpire: {
+    verificationOTPExpire: {
       type: Date,
       select: false,
     },
@@ -203,17 +203,20 @@ userSchema.methods.getResetPasswordToken = function () {
 };
 
 // Generate email verification token
-userSchema.methods.getVerificationToken = function () {
-  const verifyToken = require("crypto").randomBytes(20).toString("hex");
+userSchema.methods.generateVerificationOTP = function () {
+  // 6-digit OTP generate
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  this.verificationToken = require("crypto")
+  // Hash OTP for security
+  this.verificationOTP = require("crypto")
     .createHash("sha256")
-    .update(verifyToken)
+    .update(otp)
     .digest("hex");
 
-  this.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  // OTP expire in 10 minutes
+  this.verificationOTPExpire = Date.now() + 5 * 60 * 1000;
 
-  return verifyToken;
+  return otp;
 };
 
 module.exports = mongoose.model("User", userSchema);

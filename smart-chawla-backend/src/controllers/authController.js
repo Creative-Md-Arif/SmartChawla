@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const { sendEmail, getEmailTemplate } = require("../utils/sendEmail");
 const { cloudinary, uploadToCloudinary } = require("../config/cloudinary");
-const AppError = require("../utils/errorHandler");
+const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
 
 // Validation helper functions
@@ -73,41 +73,45 @@ exports.register = async (req, res, next) => {
     });
 
     // Generate verification token
-    const verificationToken = user.getVerificationToken();
+    const otp = user.generateVerificationOTP();
     await user.save({ validateBeforeSave: false });
 
     // Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+    // Send OTP via email
     const emailContent = `
       <h2>Welcome to Smart Chawla!</h2>
       <p>Hi ${fullName},</p>
-      <p>Thank you for registering. Please verify your email by clicking the button below:</p>
-      <a href="${verificationUrl}" class="button">Verify Email</a>
-      <p>Or copy this link: ${verificationUrl}</p>
-      <p>This link will expire in 24 hours.</p>
+      <p>Thank you for registering. Please use the following OTP to verify your email:</p>
+      <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+        <h1 style="color: #4f46e5; font-size: 32px; letter-spacing: 8px; margin: 0;">${otp}</h1>
+      </div>
+      <p>This OTP will expire in <strong>5 minutes</strong>.</p>
+      <p>If you didn't request this, please ignore this email.</p>
     `;
 
     try {
       await sendEmail({
         to: email,
-        subject: "Verify Your Email - Smart Chawla",
+        subject: "Email Verification OTP - Smart Chawla",
         htmlContent: getEmailTemplate(emailContent),
       });
+
+      res.status(201).json({
+        success: true,
+        message: "Registration successful. Please check your email for OTP.",
+        email: email, // Frontend এ দেখানোর জন্য
+        otpSent: true,
+      });
     } catch (error) {
-      user.verificationToken = undefined;
-      user.verificationTokenExpire = undefined;
+      user.verificationOTP = undefined;
+      user.verificationOTPExpire = undefined;
       await user.save({ validateBeforeSave: false });
+
       return res.status(500).json({
         success: false,
         message: "Error sending verification email",
       });
     }
-
-    res.status(201).json({
-      success: true,
-      message:
-        "Registration successful. Please check your email to verify your account.",
-    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -375,31 +379,65 @@ exports.resetPassword = async (req, res) => {
 };
 
 // Verify email
-exports.verifyEmail = async (req, res) => {
+exports.verifyEmailWithOTP = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { email, otp } = req.body;
 
-    // Hash token
-    const verificationToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and OTP",
+      });
+    }
 
+    // Find user with OTP
     const user = await User.findOne({
-      verificationToken,
-      verificationTokenExpire: { $gt: Date.now() },
-    });
+      email: email.toLowerCase(),
+    }).select("+verificationOTP +verificationOTPExpire");
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired token",
+        message: "User not found",
       });
     }
 
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    // Check if OTP expired
+    if (
+      !user.verificationOTPExpire ||
+      user.verificationOTPExpire < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one.",
+        expired: true,
+      });
+    }
+
+    // Hash provided OTP and compare
+    const hashedOTP = require("crypto")
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    if (hashedOTP !== user.verificationOTP) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP. Please try again.",
+      });
+    }
+
+    // Verify user
     user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpire = undefined;
+    user.verificationOTP = undefined;
+    user.verificationOTPExpire = undefined;
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
@@ -619,9 +657,18 @@ exports.deleteAddress = async (req, res, next) => {
   }
 };
 
-exports.resendVerification = async (req, res, next) => {
+exports.resendOTP = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(404).json({
@@ -637,39 +684,39 @@ exports.resendVerification = async (req, res, next) => {
       });
     }
 
-    // Generate new token
-    const verificationToken = user.getVerificationToken();
+    // Generate new OTP
+    const otp = user.generateVerificationOTP();
     await user.save({ validateBeforeSave: false });
 
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
     const emailContent = `
-      <h2>Verify Your Email - Smart Chawla</h2>
+      <h2>Email Verification OTP - Smart Chawla</h2>
       <p>Hi ${user.fullName},</p>
-      <p>Please verify your email by clicking the button below:</p>
-      <a href="${verificationUrl}" class="button">Verify Email</a>
-      <p>Or copy this link: ${verificationUrl}</p>
-      <p>This link will expire in 24 hours.</p>
+      <p>Your new verification OTP is:</p>
+      <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+        <h1 style="color: #4f46e5; font-size: 32px; letter-spacing: 8px; margin: 0;">${otp}</h1>
+      </div>
+      <p>This OTP will expire in <strong>10 minutes</strong>.</p>
     `;
 
     try {
       await sendEmail({
         to: user.email,
-        subject: "Verify Your Email - Smart Chawla",
+        subject: "New Verification OTP - Smart Chawla",
         htmlContent: getEmailTemplate(emailContent),
       });
 
       res.status(200).json({
         success: true,
-        message: "Verification email sent successfully",
+        message: "New OTP sent successfully",
       });
     } catch (error) {
-      user.verificationToken = undefined;
-      user.verificationTokenExpire = undefined;
+      user.verificationOTP = undefined;
+      user.verificationOTPExpire = undefined;
       await user.save({ validateBeforeSave: false });
 
       return res.status(500).json({
         success: false,
-        message: "Error sending verification email",
+        message: "Error sending OTP email",
       });
     }
   } catch (error) {

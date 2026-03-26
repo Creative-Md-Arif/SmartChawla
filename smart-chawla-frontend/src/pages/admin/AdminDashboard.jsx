@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Users,
@@ -18,6 +18,8 @@ import {
   Menu,
   Calendar,
   ShoppingCart,
+  ChevronRight,
+  Home,
 } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { formatPrice } from "../../utils/formatters";
@@ -39,6 +41,85 @@ import {
   ResponsiveContainer,
   ComposedChart,
 } from "recharts";
+
+// ===== BREADCRUMB CONFIGURATION =====
+// Sidebar-এর মতোই structure (কিন্তু sidebar-এ কোনো পরিবর্তন নেই)
+const BREADCRUMB_MAP = {
+  "admin": { label: "Admin", labelBn: "অ্যাডমিন", icon: Home },
+  "dashboard": { label: "Dashboard", labelBn: "ড্যাশবোর্ড", icon: Activity },
+  "order-list": { label: "Orders", labelBn: "অর্ডারসমূহ", icon: ShoppingBag },
+  "products": { label: "Products", labelBn: "প্রোডাক্টস", icon: Package },
+  "courses": { label: "Courses", labelBn: "কোর্সসমূহ", icon: Activity },
+  "categories": { label: "Categories", labelBn: "ক্যাটাগরিস", icon: BarChart3 },
+  "payments": { label: "Payments", labelBn: "পেমেন্টস", icon: CreditCard },
+  "coupons": { label: "Coupons", labelBn: "কুপনস", icon: CheckCircle },
+  "sales-report": { label: "Sales Report", labelBn: "বিক্রয় রিপোর্ট", icon: TrendingUp },
+  "banners": { label: "Banners", labelBn: "ব্যানারস", icon: Activity },
+  "notifications": { label: "Notifications", labelBn: "নোটিফিকেশন", icon: Bell },
+  "userlist": { label: "All Users", labelBn: "ব্যবহারকারী", icon: Users },
+};
+
+// ===== BREADCRUMB COMPONENT =====
+const Breadcrumb = ({ pathname }) => {
+  const navigate = useNavigate();
+  
+  const breadcrumbs = useMemo(() => {
+    const paths = pathname.split("/").filter(Boolean);
+    const items = [];
+    let currentPath = "";
+    
+    paths.forEach((segment, index) => {
+      currentPath += `/${segment}`;
+      const config = BREADCRUMB_MAP[segment];
+      
+      if (config) {
+        items.push({
+          path: currentPath,
+          label: config.label,
+          labelBn: config.labelBn,
+          icon: config.icon,
+          isLast: index === paths.length - 1,
+        });
+      }
+    });
+    
+    return items;
+  }, [pathname]);
+
+  if (breadcrumbs.length <= 1) return null;
+
+  return (
+    <nav className="flex items-center gap-2 text-sm mb-4 px-1">
+      {breadcrumbs.map((item, index) => (
+        <div key={item.path} className="flex items-center gap-2">
+          {index > 0 && (
+            <ChevronRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+          )}
+          
+          {item.isLast ? (
+            <span className="flex items-center gap-1.5 text-violet-700 font-semibold bg-violet-50 px-2.5 py-1 rounded-lg">
+              <item.icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{item.label}</span>
+              <span className="sm:hidden font-bangla text-xs">{item.labelBn}</span>
+              <span className="hidden sm:inline font-bangla text-xs text-violet-600">
+                / {item.labelBn}
+              </span>
+            </span>
+          ) : (
+            <Link
+              to={item.path}
+              className="flex items-center gap-1.5 text-neutral-600 hover:text-violet-600 transition-colors duration-200 group"
+            >
+              <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">{item.label}</span>
+              <span className="sm:hidden font-bangla text-xs">{item.labelBn}</span>
+            </Link>
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+};
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -257,6 +338,11 @@ const AdminDashboard = () => {
                 <RefreshCw className="w-5 h-5" />
               </button>
             </div>
+          </div>
+
+          {/* ===== BREADCRUMB SECTION ===== */}
+          <div className="px-4 sm:px-6 py-2 bg-neutral-50/50 border-t border-neutral-100">
+            <Breadcrumb pathname={location.pathname} />
           </div>
 
           {/* Mobile Time Range - Fixed padding and layout */}
