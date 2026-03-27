@@ -36,6 +36,48 @@ export const validateCoupon = createAsyncThunk(
   },
 );
 
+export const createCoupon = createAsyncThunk(
+  "coupon/createCoupon",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/coupons", data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create coupon",
+      );
+    }
+  },
+);
+
+export const updateCoupon = createAsyncThunk(
+  "coupon/updateCoupon",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(`/coupons/${id}`, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update coupon",
+      );
+    }
+  },
+);
+
+export const deleteCoupon = createAsyncThunk(
+  "coupon/deleteCoupon",
+  async (id, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/coupons/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete coupon",
+      );
+    }
+  },
+);
+
 export const applyCouponCode = createAsyncThunk(
   "coupon/applyCouponCode",
   async ({ code, subtotal, items }, { rejectWithValue }) => {
@@ -122,6 +164,21 @@ const couponSlice = createSlice({
       .addCase(fetchCoupons.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(createCoupon.fulfilled, (state, action) => {
+        state.coupons.unshift(action.payload.coupon);
+      })
+
+      .addCase(updateCoupon.fulfilled, (state, action) => {
+        const index = state.coupons.findIndex(
+          (c) => c._id === action.payload.coupon._id,
+        );
+        if (index !== -1) state.coupons[index] = action.payload.coupon;
+      })
+
+      .addCase(deleteCoupon.fulfilled, (state, action) => {
+        state.coupons = state.coupons.filter((c) => c._id !== action.payload);
       })
 
       // Validate coupon

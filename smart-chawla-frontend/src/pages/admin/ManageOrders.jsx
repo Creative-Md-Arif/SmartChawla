@@ -39,6 +39,7 @@ import {
   Link as MuiLink,
   useMediaQuery,
   useTheme,
+  Menu,
 } from "@mui/material";
 import {
   Visibility as VisibilityIcon,
@@ -766,7 +767,7 @@ const ManageOrders = () => {
         sx={{
           flexGrow: 1,
           p: { xs: 1, sm: 2, md: 3 },
-          ml: { xs: 0, sm: "80px", md: "280px" },
+          ml: { xs: 0, sm: "0", md: "0" },
           transition: "margin 0.3s ease",
           width: {
             xs: "100%",
