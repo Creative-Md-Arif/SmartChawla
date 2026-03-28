@@ -119,7 +119,7 @@ const Home = () => {
       {/* 🎯 PROMOTIONAL BANNERS / ADS SECTION */}
       {activePromotions.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {activePromotions.map((promo, index) => (
               <div
                 key={promo._id}
@@ -256,7 +256,7 @@ const Home = () => {
             View All <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {featuredProducts.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
@@ -306,7 +306,7 @@ const Home = () => {
             View All <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {popularCourses.map((course) => (
             <CourseCard key={course._id} course={course} />
           ))}

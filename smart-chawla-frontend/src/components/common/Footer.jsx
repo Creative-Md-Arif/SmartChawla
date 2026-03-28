@@ -1,35 +1,43 @@
-import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from "react-router-dom";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Youtube,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Blog', href: '/blog' },
+      { name: "About Us", href: "/about" },
+      { name: "Contact", href: "/contact" },
+      { name: "Careers", href: "/careers" },
+      { name: "Blog", href: "/blog" },
     ],
     support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Refund Policy', href: '/refund' },
+      { name: "Help Center", href: "/help" },
+      { name: "Terms of Service", href: "/terms" },
+      { name: "Privacy Policy", href: "/privacy" },
+      { name: "Refund Policy", href: "/refund" },
     ],
     quickLinks: [
-      { name: 'Shop', href: '/shop' },
-      { name: 'Courses', href: '/courses' },
-      { name: 'Categories', href: '/categories' },
-      { name: 'Offers', href: '/offers' },
+      { name: "Shop", href: "/shop" },
+      { name: "Courses", href: "/courses" },
+      { name: "Categories", href: "/categories" },
+      { name: "Offers", href: "/offers" },
     ],
   };
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, href: '#' },
-    { name: 'Twitter', icon: Twitter, href: '#' },
-    { name: 'Instagram', icon: Instagram, href: '#' },
-    { name: 'YouTube', icon: Youtube, href: '#' },
+    { name: "Facebook", icon: Facebook, href: "#" },
+    { name: "Twitter", icon: Twitter, href: "#" },
+    { name: "Instagram", icon: Instagram, href: "#" },
+    { name: "YouTube", icon: Youtube, href: "#" },
   ];
 
   return (
@@ -46,7 +54,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-white">Smart Chawla</span>
             </Link>
             <p className="text-gray-400 mb-6 max-w-sm">
-              Your one-stop destination for quality products and online courses. 
+              Your one-stop destination for quality products and online courses.
               Learn, shop, and grow with us.
             </p>
 
@@ -120,21 +128,28 @@ const Footer = () => {
         </div>
 
         {/* Newsletter */}
-        <div className="mt-12 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-white font-semibold text-lg">Subscribe to our newsletter</h3>
-              <p className="text-gray-400">Get the latest updates on new products and courses</p>
+        <div className="mt-12 pt-8 border-t border-gray-800 px-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            {/* Text Section */}
+            <div className="text-center md:text-left w-full">
+              <h3 className="text-white font-semibold text-xl md:text-lg">
+                Subscribe to our newsletter
+              </h3>
+              <p className="text-gray-400 text-sm md:text-base mt-1">
+                Get the latest updates on new products and courses
+              </p>
             </div>
-            <form className="flex w-full md:w-auto">
+
+            {/* Form Section */}
+            <form className="flex flex-col sm:flex-row w-full max-w-md gap-3 sm:gap-0">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 md:w-64 px-4 py-2 rounded-l-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-3 sm:py-2 rounded-lg sm:rounded-r-none sm:rounded-l-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-purple-500 text-sm"
               />
               <button
                 type="submit"
-                className="px-6 py-2 bg-purple-600 text-white rounded-r-lg hover:bg-purple-700 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-purple-600 text-white font-medium rounded-lg sm:rounded-l-none sm:rounded-r-lg hover:bg-purple-700 transition-colors shadow-lg active:scale-95"
               >
                 Subscribe
               </button>
