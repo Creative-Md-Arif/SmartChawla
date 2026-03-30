@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock , ShieldCheck } from "lucide-react";
 import InputField from "../../components/form/InputField";
 import axiosInstance from "../../utils/axiosInstance";
 
