@@ -17,7 +17,7 @@ import {
 } from "../../redux/slices/cartSlice";
 
 const AddToCartButton = ({
-  item,
+  item = {}, 
   variant = "default",
   className = "",
   showQuantity = false,
