@@ -102,7 +102,7 @@ const CategoryTree = ({
             onClick={() => onSelect?.(category)}
             className="flex-1 font-medium truncate"
           >
-            {category.name.bn || category.name.en}
+            {category.name?.bn || category.name?.en || 'Untitled'}
           </span>
 
           {/* Product Count */}
@@ -163,7 +163,7 @@ const CategoryTree = ({
     <div className="bg-white rounded-lg border border-gray-200 p-4">
       <h3 className="font-semibold text-gray-900 mb-4">Categories</h3>
       <div className="space-y-1">
-        {categories.map((category) => renderCategory(category))}
+        {categories?.map((category) => renderCategory(category))}
       </div>
     </div>
   );
