@@ -1,7 +1,13 @@
-import { useEffect } from 'react'; // অবশ্যই ইমপোর্ট করতে হবে
-import { BrowserRouter } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux'; // useSelector যোগ করুন
+import { useEffect } from 'react';
+import { 
+  createBrowserRouter, 
+  RouterProvider, 
+  ScrollRestoration, 
+  Outlet 
+} from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
+
 import AppRoutes from './routes/AppRoutes';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
@@ -10,10 +16,39 @@ import './assets/styles/index.css';
 import { syncEnrollments } from './redux/slices/enrollSlice';
 import axiosInstance from './utils/axiosInstance';
 
+// ১. লেআউট কম্পোনেন্ট (ScrollRestoration এখানে থাকবে)
+const RootLayout = () => {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <ScrollRestoration /> 
+      <Navbar />
+      <main className="flex-1 pt-16">
+        <Outlet /> 
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+// ২. রাউটার কনফিগারেশন (BrowserRouter এর বদলে এটাই লেটেস্ট নিয়ম)
+const router = createBrowserRouter([
+  {
+    path: "/*",
+    element: <RootLayout />,
+    children: [
+      {
+        path: "*",
+        element: <AppRoutes />, 
+      },
+    ],
+  },
+]);
+
 function App() {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
+  // আপনার এনরোলমেন্ট সিঙ্ক লজিক (সম্পূর্ণ অপরিবর্তিত)
   useEffect(() => {
     if (isAuthenticated && user) {
       const fetchEnrollments = async () => {
@@ -43,14 +78,8 @@ function App() {
   }, [isAuthenticated, user, dispatch]);
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar />
-        <main className="flex-1 pt-16">
-          <AppRoutes />
-        </main>
-        <Footer />
-      </div>
+    <>
+      <RouterProvider router={router} />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -61,7 +90,7 @@ function App() {
           },
         }}
       />
-    </BrowserRouter>
+    </>
   );
 }
 

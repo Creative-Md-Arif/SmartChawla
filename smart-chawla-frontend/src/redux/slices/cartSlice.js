@@ -4,18 +4,32 @@ import { createSlice } from "@reduxjs/toolkit";
 const loadCartFromStorage = () => {
   try {
     const savedCart = localStorage.getItem("cart");
-    return savedCart
-      ? JSON.parse(savedCart)
-      : { items: [], totalAmount: 0, itemCount: 0 };
+    if (savedCart) {
+      const parsed = JSON.parse(savedCart);
+      // 🔧 FIX: Ensure items is always an array
+      return {
+        items: Array.isArray(parsed.items) ? parsed.items : [],
+        totalAmount: parsed.totalAmount || 0,
+        itemCount: parsed.itemCount || 0,
+      };
+    }
   } catch (error) {
-    return { items: [], totalAmount: 0, itemCount: 0 };
+    console.error("Error loading cart:", error);
   }
+  // 🔧 FIX: Always return valid initial state
+  return { items: [], totalAmount: 0, itemCount: 0 };
 };
 
 // Save cart to localStorage
 const saveCartToStorage = (cart) => {
   try {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    // 🔧 FIX: Ensure we're saving valid data
+    const dataToSave = {
+      items: Array.isArray(cart.items) ? cart.items : [],
+      totalAmount: cart.totalAmount || 0,
+      itemCount: cart.itemCount || 0,
+    };
+    localStorage.setItem("cart", JSON.stringify(dataToSave));
   } catch (error) {
     console.error("Error saving cart:", error);
   }
@@ -23,10 +37,14 @@ const saveCartToStorage = (cart) => {
 
 // Calculate totals
 const calculateTotals = (items) => {
+  // 🔧 FIX: Ensure items is array
+  if (!Array.isArray(items)) {
+    return { totalAmount: 0, itemCount: 0 };
+  }
   return items.reduce(
     (acc, item) => ({
-      totalAmount: acc.totalAmount + item.price * item.quantity,
-      itemCount: acc.itemCount + item.quantity,
+      totalAmount: acc.totalAmount + (item.price || 0) * (item.quantity || 1),
+      itemCount: acc.itemCount + (item.quantity || 1),
     }),
     { totalAmount: 0, itemCount: 0 },
   );
@@ -39,19 +57,21 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-    const {
-      itemType,
-      itemId,
-      name,
-      price,
-      discountPrice, // ✅ যোগ করুন
-      image,
-      instructor, // ✅ যোগ করুন
-      duration, // ✅ যোগ করুন
-      level, // ✅ যোগ করুন
-      quantity = 1,
-    } = action.payload;
-
+      if (!Array.isArray(state.items)) {
+        state.items = [];
+      }
+      const {
+        itemType,
+        itemId,
+        name,
+        price,
+        discountPrice, // ✅ যোগ করুন
+        image,
+        instructor, // ✅ যোগ করুন
+        duration, // ✅ যোগ করুন
+        level, // ✅ যোগ করুন
+        quantity = 1,
+      } = action.payload;
 
       // Same itemType + itemId + price (price change হলে নতুন item)
       const existingItemIndex = state.items.findIndex(
@@ -66,19 +86,19 @@ const cartSlice = createSlice({
         state.items[existingItemIndex].quantity += quantity;
       } else {
         // New item - নতুন entry
-       state.items.push({
-         itemType,
-         itemId,
-         name,
-         price,
-         discountPrice, // ✅
-         image,
-         instructor, // ✅
-         duration, // ✅
-         level, // ✅
-         quantity,
-         addedAt: new Date().toISOString(),
-       });
+        state.items.push({
+          itemType,
+          itemId,
+          name,
+          price,
+          discountPrice, // ✅
+          image,
+          instructor, // ✅
+          duration, // ✅
+          level, // ✅
+          quantity,
+          addedAt: new Date().toISOString(),
+        });
       }
 
       const totals = calculateTotals(state.items);

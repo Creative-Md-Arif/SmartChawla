@@ -218,8 +218,6 @@ const Checkout = () => {
         notes: "", // Optional field
       };
 
-      console.log("Submitting order:", orderData); // Debug log
-
       // ✅ FIX 6: Create order first
       const response = await axiosInstance.post("/orders", orderData);
 
@@ -353,52 +351,56 @@ const Checkout = () => {
             </h2>
 
             {appliedCoupon ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Check className="w-5 h-5 text-green-600" />
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-green-900">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-green-900 text-sm sm:text-base truncate">
                       {appliedCoupon.code}
                     </p>
-                    <p className="text-sm text-green-700">
+                    <p className="text-xs sm:text-sm text-green-700 whitespace-nowrap">
                       {appliedCoupon.discountType === "percentage"
                         ? `${appliedCoupon.discountValue}% OFF`
                         : `${formatPrice(appliedCoupon.discountValue)} OFF`}
                     </p>
                   </div>
                 </div>
+
+                {/* রিমুভ বাটন */}
                 <button
                   type="button"
                   onClick={handleRemoveCoupon}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                  className="p-1.5 sm:p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             ) : (
               <>
-                <div className="flex gap-2 mb-4">
-                  <div className="flex-1 relative">
+                <div className="flex items-stretch gap-1.5 sm:gap-2 mb-4 w-full">
+                  <div className="relative flex-1 min-w-0">
                     <input
                       type="text"
                       value={couponCode}
                       onChange={(e) =>
                         setCouponCode(e.target.value.toUpperCase())
                       }
-                      placeholder="Enter coupon code (e.g., AREID)"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase"
+                      placeholder="Coupon code..."
+                      className="w-full h-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase placeholder:text-xs sm:placeholder:text-sm"
                     />
                     {couponLoading && (
-                      <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-600 animate-spin" />
+                      <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-600 animate-spin" />
                     )}
                   </div>
+
+                  {/* অ্যাপ্লাই বাটন - ৩২০ পিক্সেল স্ক্রিনেও পাশাপাশি থাকবে */}
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={!couponCode.trim() || couponLoading}
-                    className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 sm:px-6 py-2.5 bg-purple-600 text-white text-sm sm:text-base font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap shrink-0"
                   >
                     Apply
                   </button>
@@ -543,24 +545,29 @@ const Checkout = () => {
               Payment Method
             </h2>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
               {paymentMethods.map((method) => (
                 <button
                   key={method.id}
                   type="button"
                   onClick={() => setPaymentMethod(method.id)}
-                  className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                  // প্যাডিং অনেক কমিয়ে p-2 করা হয়েছে যাতে কম জায়গা নেয়
+                  className={`p-2 sm:p-4 border-[1.5px] sm:border-2 rounded-lg text-center transition-all min-w-0 ${
                     paymentMethod === method.id
-                      ? "border-purple-600 bg-purple-50"
-                      : "border-gray-200 hover:border-purple-300"
+                      ? "border-purple-600 bg-purple-50 shadow-sm"
+                      : "border-gray-200 hover:border-purple-200"
                   }`}
                 >
+                  {/* আইকনের সাইজ ছোট করা হয়েছে (w-7 h-7) */}
                   <div
-                    className={`w-10 h-10 ${method.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-xs`}
+                    className={`w-7 h-7 sm:w-10 sm:h-10 ${method.color} rounded-full mx-auto mb-1 flex items-center justify-center text-white font-bold text-[9px] sm:text-xs shrink-0`}
                   >
                     {method.name.slice(0, 2)}
                   </div>
-                  <span className="font-medium">{method.name}</span>
+                  {/* ফন্ট সাইজ আরও ছোট (text-[10px]) করা হয়েছে যাতে এক লাইনে আটে */}
+                  <span className="font-semibold text-[10px] sm:text-sm block truncate leading-tight">
+                    {method.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -622,17 +629,20 @@ const Checkout = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-fit sticky top-4">
           <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
 
-          <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+          <div className="space-y-2 sm:space-y-3 mb-4 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
             {items.map((item) => (
               <div
                 key={`${item.itemType}-${item.itemId}`}
-                className="flex justify-between text-sm"
+                className="flex justify-between items-start gap-2 text-[13px] sm:text-sm border-b border-gray-50 pb-2 last:border-0"
               >
-                <span className="text-gray-600 flex-1">
-                  {item.name}{" "}
-                  <span className="text-gray-400">x {item.quantity}</span>
-                </span>
-                <span className="font-medium">
+                <div className="text-gray-600 flex-1 min-w-0">
+                  <p className="truncate sm:whitespace-normal">{item.name}</p>
+                  <span className="text-gray-400 text-xs mt-0.5 block">
+                    Qty: {item.quantity}
+                  </span>
+                </div>
+
+                <span className="font-semibold text-gray-900 shrink-0 tabular-nums">
                   {formatPrice(item.price * item.quantity)}
                 </span>
               </div>
@@ -640,9 +650,12 @@ const Checkout = () => {
           </div>
 
           <div className="border-t pt-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
+            <div className="flex justify-between items-center gap-2 py-1 text-[13px] sm:text-sm">
+              <span className="text-gray-600 font-medium">Subtotal</span>
+
+              <span className="font-semibold text-gray-900 shrink-0 tabular-nums">
+                {formatPrice(subtotal)}
+              </span>
             </div>
 
             {discountAmount > 0 && (

@@ -5,7 +5,6 @@ import {
   Search,
   ShoppingCart,
   User,
-  Menu,
   X,
   ChevronDown,
   LogOut,
@@ -45,8 +44,8 @@ const Navbar = () => {
   const searchRef = useRef(null);
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { items: cartItems } = useSelector((state) => state.cart);
-  const { items: wishlistItems } = useSelector((state) => state.wishlist);
+const { items: cartItems = [] } = useSelector((state) => state.cart) || {};
+const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || {};
 
   const cartItemCount = cartItems.length;
   const wishlistCount = wishlistItems.length;

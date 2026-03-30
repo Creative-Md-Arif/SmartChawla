@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useBanners } from '../../hooks/useBanners';
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useBanners } from "../../hooks/useBanners";
 
 const HeroBanner = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const { banners, loading } = useBanners('hero');
+  const { banners, loading } = useBanners("hero");
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -30,7 +29,7 @@ const HeroBanner = () => {
 
   if (loading || banners.length === 0) {
     return (
-      <div className="w-full h-[400px] bg-gray-200 animate-pulse rounded-lg" />
+      <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] bg-gray-200 animate-pulse rounded-lg" />
     );
   }
 
@@ -38,7 +37,7 @@ const HeroBanner = () => {
 
   return (
     <div
-      className="relative w-full h-[400px] md:h-[500px] overflow-hidden rounded-lg"
+      className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -48,34 +47,49 @@ const HeroBanner = () => {
           key={banner._id}
           className={`absolute inset-0 transition-all duration-700 ${
             index === currentIndex
-              ? 'opacity-100 translate-x-0'
+              ? "opacity-100 translate-x-0 z-10"
               : index < currentIndex
-              ? 'opacity-0 -translate-x-full'
-              : 'opacity-0 translate-x-full'
+                ? "opacity-0 -translate-x-full z-0"
+                : "opacity-0 translate-x-full z-0"
           }`}
         >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${banner.image?.url})` }}
-          >
+          {/* Background Image - Responsive & SEO Optimized */}
+          <div className="absolute inset-0">
+            <img
+              src={banner.image?.url}
+              alt={banner.title || "Hero banner"}
+              srcSet={`
+                ${banner.image?.mobileUrl || banner.image?.url} 640w,
+                ${banner.image?.tabletUrl || banner.image?.url} 1024w,
+                ${banner.image?.url} 1920w
+              `}
+              sizes="100vw"
+              width={1920}
+              height={600}
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                objectPosition: "center center",
+              }}
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
           </div>
 
           {/* Content */}
-          <div className="relative h-full flex items-center">
+          <div className="relative h-full flex items-center z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-xl">
                 <h2
-                  className="text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in-up"
-                  style={{ animationDelay: '0.2s' }}
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in-up"
+                  style={{ animationDelay: "0.2s" }}
                 >
                   {banner.title}
                 </h2>
                 {banner.subtitle && (
                   <p
-                    className="text-lg md:text-xl text-gray-200 mb-8 animate-fade-in-up"
-                    style={{ animationDelay: '0.4s' }}
+                    className="text-base sm:text-lg md:text-xl text-gray-200 mb-6 sm:mb-8 animate-fade-in-up"
+                    style={{ animationDelay: "0.4s" }}
                   >
                     {banner.subtitle}
                   </p>
@@ -83,10 +97,10 @@ const HeroBanner = () => {
                 {banner.link && (
                   <Link
                     to={banner.link}
-                    className="inline-block px-8 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors animate-fade-in-up"
-                    style={{ animationDelay: '0.6s' }}
+                    className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors animate-fade-in-up text-sm sm:text-base"
+                    style={{ animationDelay: "0.6s" }}
                   >
-                    {banner.buttonText || 'Shop Now'}
+                    {banner.buttonText || "Shop Now"}
                   </Link>
                 )}
               </div>
@@ -95,35 +109,17 @@ const HeroBanner = () => {
         </div>
       ))}
 
-      {/* Navigation Arrows */}
-      {banners.length > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </>
-      )}
-
       {/* Dots */}
       {banners.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
+              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
                 index === currentIndex
-                  ? 'bg-purple-600 w-8'
-                  : 'bg-white/50 hover:bg-white/80'
+                  ? "bg-purple-600 w-6 sm:w-8"
+                  : "bg-white/50 hover:bg-white/80"
               }`}
             />
           ))}

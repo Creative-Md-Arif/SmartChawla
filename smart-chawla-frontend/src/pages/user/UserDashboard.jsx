@@ -1,19 +1,35 @@
-import { Link } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import axiosInstance from '../../utils/axiosInstance';
+import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import axiosInstance from "../../utils/axiosInstance";
 import {
-  ShoppingBag, BookOpen, Heart, Package, Award, User, Mail, Phone, MapPin,
-  Edit3, Camera, X, Check, Loader2, Plus, Trash2, AlertCircle, ShoppingCart
-} from 'lucide-react';
+  ShoppingBag,
+  BookOpen,
+  Heart,
+  Package,
+  Award,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Edit3,
+  Camera,
+  X,
+  Check,
+  Loader2,
+  Plus,
+  Trash2,
+  AlertCircle,
+  ShoppingCart,
+} from "lucide-react";
 // IMPORT: Redux thunks
-import { 
-  addAddress, 
-  updateAddress, 
-  deleteAddress, 
+import {
+  addAddress,
+  updateAddress,
+  deleteAddress,
   updateProfile,
-  fetchProfile 
-} from '../../redux/slices/authSlice';
+  fetchProfile,
+} from "../../redux/slices/authSlice";
 
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -22,10 +38,16 @@ const Toast = ({ message, type, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-      type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
-    }`}>
-      {type === 'error' ? <AlertCircle className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+    <div
+      className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+        type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"
+      }`}
+    >
+      {type === "error" ? (
+        <AlertCircle className="w-5 h-5" />
+      ) : (
+        <Check className="w-5 h-5" />
+      )}
       <span className="font-medium">{message}</span>
     </div>
   );
@@ -34,36 +56,40 @@ const Toast = ({ message, type, onClose }) => {
 const UserDashboard = () => {
   const { user, loading: authLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  
-  const [activeTab, setActiveTab] = useState('overview');
+
+  const [activeTab, setActiveTab] = useState("overview");
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
-
-  
   // Profile state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileData, setProfileData] = useState({ fullName: '', phone: '' });
+  const [profileData, setProfileData] = useState({ fullName: "", phone: "" });
   const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  
+  const [avatarPreview, setAvatarPreview] = useState("");
+
   // Address state
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressFormData, setAddressFormData] = useState({
-    fullName: '', phone: '', address: '', city: '', district: '', postalCode: '', isDefault: false
+    fullName: "",
+    phone: "",
+    address: "",
+    city: "",
+    district: "",
+    postalCode: "",
+    isDefault: false,
   });
   const [editingAddressId, setEditingAddressId] = useState(null);
-  
+
   const [toast, setToast] = useState(null);
 
   // FIXED: Sync with Redux user data (includes localStorage persistence)
   useEffect(() => {
     if (user) {
       setProfileData({
-        fullName: user.fullName || '',
-        phone: user.phone || '',
+        fullName: user.fullName || "",
+        phone: user.phone || "",
       });
-      setAvatarPreview(user.avatar || '');
+      setAvatarPreview(user.avatar || "");
     }
   }, [user]);
 
@@ -75,56 +101,63 @@ const UserDashboard = () => {
   const fetchMyOrders = async () => {
     try {
       setOrdersLoading(true);
-      const response = await axiosInstance.get('/orders/my-orders');
+      const response = await axiosInstance.get("/orders/my-orders");
       const ordersData = response.data.orders || response.data.data || [];
       setOrders(ordersData);
     } catch (error) {
-      console.error('Failed to fetch orders:', error);
+      console.error("Failed to fetch orders:", error);
     } finally {
       setOrdersLoading(false);
     }
   };
 
-
   // Cleanup object URLs
   useEffect(() => {
     return () => {
-      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+      if (avatarPreview && avatarPreview.startsWith("blob:")) {
         URL.revokeObjectURL(avatarPreview);
       }
     };
   }, [avatarPreview]);
 
   // Stats
-  const stats = useMemo(() => [
-    { 
-      name: 'Active Orders', 
-      value: orders.filter(o => ['Pending', 'Processing', 'Shipped'].includes(o.status)).length, 
-      icon: ShoppingBag, 
-      color: 'bg-blue-500',
-      link: '/my-orders'
-    },
-    { 
-      name: 'My Courses', 
-      value: user?.purchasedCourses?.length || 0, 
-      icon: BookOpen, 
-      color: 'bg-green-500',
-      link: '/my-courses'
-    },
+  const stats = useMemo(
+    () => [
+      {
+        name: "Active Orders",
+        value: orders.filter((o) =>
+          ["Pending", "Processing", "Shipped"].includes(o.status),
+        ).length,
+        icon: ShoppingBag,
+        color: "bg-blue-500",
+        link: "/my-orders",
+      },
+      {
+        name: "My Courses",
+        value: user?.purchasedCourses?.length || 0,
+        icon: BookOpen,
+        color: "bg-green-500",
+        link: "/my-courses",
+      },
 
-    { 
-      name: 'Completed', 
-      value: user?.purchasedCourses?.filter(c => c.progress === 100).length || 0, 
-      icon: Award, 
-      color: 'bg-yellow-500',
-      link: '/my-courses'
-    },
-  ], [orders, user?.purchasedCourses,]);
+      {
+        name: "Completed",
+        value:
+          user?.purchasedCourses?.filter((c) => c.progress === 100).length || 0,
+        icon: Award,
+        color: "bg-yellow-500",
+        link: "/my-courses",
+      },
+    ],
+    [orders, user?.purchasedCourses],
+  );
 
   const recentCourses = useMemo(() => {
     if (!user?.purchasedCourses?.length) return [];
     return [...user.purchasedCourses]
-      .sort((a, b) => new Date(b.lastAccessed || 0) - new Date(a.lastAccessed || 0))
+      .sort(
+        (a, b) => new Date(b.lastAccessed || 0) - new Date(a.lastAccessed || 0),
+      )
       .slice(0, 3);
   }, [user?.purchasedCourses]);
 
@@ -135,7 +168,7 @@ const UserDashboard = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        setToast({ message: 'Image must be less than 2MB', type: 'error' });
+        setToast({ message: "Image must be less than 2MB", type: "error" });
         return;
       }
       setAvatarFile(file);
@@ -149,26 +182,29 @@ const UserDashboard = () => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      formData.append('fullName', profileData.fullName);
-      formData.append('phone', profileData.phone);
-      if (avatarFile) formData.append('avatar', avatarFile);
+      formData.append("fullName", profileData.fullName);
+      formData.append("phone", profileData.phone);
+      if (avatarFile) formData.append("avatar", avatarFile);
 
       await dispatch(updateProfile(formData)).unwrap();
-      
+
       setIsEditingProfile(false);
       setAvatarFile(null);
-      setToast({ message: 'Profile updated successfully', type: 'success' });
+      setToast({ message: "Profile updated successfully", type: "success" });
     } catch (error) {
-      setToast({ message: error || 'Failed to update profile', type: 'error' });
+      setToast({ message: error || "Failed to update profile", type: "error" });
     }
   };
 
   const handleResendVerification = async () => {
     try {
-      await axiosInstance.post('/auth/resend-verification');
-      setToast({ message: 'Verification email sent!', type: 'success' });
+      await axiosInstance.post("/auth/resend-verification");
+      setToast({ message: "Verification email sent!", type: "success" });
     } catch (error) {
-      setToast({ message: error.response?.data?.message || 'Failed to send email', type: 'error' });
+      setToast({
+        message: error.response?.data?.message || "Failed to send email",
+        type: "error",
+      });
     }
   };
 
@@ -177,35 +213,45 @@ const UserDashboard = () => {
     e.preventDefault();
     try {
       await dispatch(addAddress(addressFormData)).unwrap();
-      
+
       setShowAddressForm(false);
-      setAddressFormData({ fullName: '', phone: '', address: '', city: '', district: '', postalCode: '', isDefault: false });
-      setToast({ message: 'Address added successfully', type: 'success' });
+      setAddressFormData({
+        fullName: "",
+        phone: "",
+        address: "",
+        city: "",
+        district: "",
+        postalCode: "",
+        isDefault: false,
+      });
+      setToast({ message: "Address added successfully", type: "success" });
     } catch (error) {
-      setToast({ message: error || 'Failed to add address', type: 'error' });
+      setToast({ message: error || "Failed to add address", type: "error" });
     }
   };
 
   const handleUpdateAddress = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(updateAddress({ id: editingAddressId, data: addressFormData })).unwrap();
-      
+      await dispatch(
+        updateAddress({ id: editingAddressId, data: addressFormData }),
+      ).unwrap();
+
       setEditingAddressId(null);
       setShowAddressForm(false);
-      setToast({ message: 'Address updated successfully', type: 'success' });
+      setToast({ message: "Address updated successfully", type: "success" });
     } catch (error) {
-      setToast({ message: error || 'Failed to update address', type: 'error' });
+      setToast({ message: error || "Failed to update address", type: "error" });
     }
   };
 
   const handleDeleteAddress = async (id) => {
-    if (!window.confirm('Delete this address?')) return;
+    if (!window.confirm("Delete this address?")) return;
     try {
       await dispatch(deleteAddress(id)).unwrap();
-      setToast({ message: 'Address deleted', type: 'success' });
+      setToast({ message: "Address deleted", type: "success" });
     } catch (error) {
-      setToast({ message: error || 'Failed to delete address', type: 'error' });
+      setToast({ message: error || "Failed to delete address", type: "error" });
     }
   };
 
@@ -219,31 +265,32 @@ const UserDashboard = () => {
 
   const handleAddToCart = async (item) => {
     try {
-      await axiosInstance.post('/cart', {
+      await axiosInstance.post("/cart", {
         itemType: item.itemType,
         itemId: item.itemId || item._id,
-        quantity: 1
+        quantity: 1,
       });
-      setToast({ message: 'Added to cart!', type: 'success' });
+      setToast({ message: "Added to cart!", type: "success" });
     } catch (error) {
-      setToast({ message: 'Failed to add to cart', type: 'error' });
+      setToast({ message: "Failed to add to cart", type: "error" });
     }
   };
 
   const getStatusBadge = (status) => {
     const styles = {
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      completed: 'bg-green-100 text-green-800',
-      verified: 'bg-green-100 text-green-800',
+      delivered: "bg-green-100 text-green-800",
+      cancelled: "bg-red-100 text-red-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      processing: "bg-blue-100 text-blue-800",
+      shipped: "bg-purple-100 text-purple-800",
+      completed: "bg-green-100 text-green-800",
+      verified: "bg-green-100 text-green-800",
     };
-    return styles[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
+    return styles[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
-  const getItemIcon = (itemType) => itemType === 'course' ? BookOpen : ShoppingBag;
+  const getItemIcon = (itemType) =>
+    itemType === "course" ? BookOpen : ShoppingBag;
 
   if (authLoading && !user) {
     return (
@@ -257,25 +304,43 @@ const UserDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">
-              Welcome back, {user?.fullName?.split(' ')[0] || 'User'}!
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-4 sm:p-6 text-white mb-6 shadow-lg">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold mb-1 truncate">
+              Welcome back, {user?.fullName?.split(" ")[0] || "User"}!
             </h1>
-            <p className="text-white/80">
-              {user?.addresses?.length || 0} addresses  • {orders.filter(o => ['Pending', 'Processing', 'Shipped'].includes(o.status)).length} active orders
+            <p className="text-white/80 text-xs sm:text-base">
+              {user?.addresses?.length || 0} addresses •{" "}
+              {
+                orders.filter((o) =>
+                  ["Pending", "Processing", "Shipped"].includes(o.status),
+                ).length
+              }{" "}
+              active orders
             </p>
           </div>
-          <div className="w-16 h-16 rounded-full border-2 border-white/30 overflow-hidden bg-white/20 hidden sm:block">
+
+          {/* Profile Picture: ৩২০ পিক্সেলের জন্য সাইজ একটু কমানো হয়েছে এবং এলাইনমেন্ট ঠিক রাখা হয়েছে */}
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-white/30 overflow-hidden bg-white/20 flex-shrink-0">
             {user?.avatar ? (
-              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+              <img
+                src={user.avatar}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <User className="w-8 h-8 text-white/70" />
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-white/70" />
               </div>
             )}
           </div>
@@ -285,16 +350,21 @@ const UserDashboard = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {[
-          { id: 'overview', label: 'Overview', icon: Package },
-          { id: 'profile', label: 'Profile', icon: User },
-          { id: 'addresses', label: `Addresses (${user?.addresses?.length || 0})`, icon: MapPin },
-         
+          { id: "overview", label: "Overview", icon: Package },
+          { id: "profile", label: "Profile", icon: User },
+          {
+            id: "addresses",
+            label: `Addresses (${user?.addresses?.length || 0})`,
+            icon: MapPin,
+          },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === tab.id ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              activeTab === tab.id
+                ? "bg-purple-600 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -304,13 +374,18 @@ const UserDashboard = () => {
       </div>
 
       {/* Overview Tab */}
-      {activeTab === 'overview' && (
+      {activeTab === "overview" && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {stats.map((stat) => (
-              <Link key={stat.name} to={stat.link}
-                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mb-3`}>
+              <Link
+                key={stat.name}
+                to={stat.link}
+                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                <div
+                  className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mb-3`}
+                >
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
@@ -321,58 +396,100 @@ const UserDashboard = () => {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Orders */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Package className="w-5 h-5 text-purple-600" /> Recent Orders
+                <h2 className="text-base sm:text-lg font-semibold flex items-center gap-1.5 sm:gap-2">
+                  <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />{" "}
+                  Recent Orders
                 </h2>
-                <Link to="/my-orders" className="text-sm text-purple-600 hover:underline">View all</Link>
+                <Link
+                  to="/my-orders"
+                  className="text-xs sm:text-sm text-purple-600 hover:underline whitespace-nowrap ml-2"
+                >
+                  View all
+                </Link>
               </div>
+
               {ordersLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-purple-600" /></div>
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-purple-600" />
+                </div>
               ) : recentOrders.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {recentOrders.map((order) => (
-                    <Link key={order._id} to={`/my-orders/${order._id}`}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors">
-                      <div>
-                        <p className="font-medium text-gray-900">#{order.orderNumber || order._id.slice(-6)}</p>
-                        <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    <Link
+                      key={order._id}
+                      to={`/my-orders/${order._id}`}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors gap-2"
+                    >
+                      {/* Left Side: Order ID & Date */}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base text-gray-900 truncate">
+                          #{order.orderNumber || order._id.slice(-6)}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(order.status)}`}>{order.status}</span>
-                        <p className="text-sm font-medium text-gray-900 mt-1">৳{order.finalAmount || order.totalAmount}</p>
+
+                      {/* Right Side: Status & Amount */}
+                      <div className="text-right flex-shrink-0">
+                        <span
+                          className={`inline-block px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${getStatusBadge(order.status)}`}
+                        >
+                          {order.status}
+                        </span>
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 mt-1">
+                          ৳{order.finalAmount || order.totalAmount}
+                        </p>
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Package className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No orders yet</p>
+                <div className="text-center py-6 sm:py-8 text-gray-500">
+                  <Package className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm sm:text-base">No orders yet</p>
                 </div>
               )}
             </div>
 
             {/* Courses */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-purple-600" /> Continue Learning
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h2 className="text-base sm:text-lg font-semibold flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 flex-shrink-0" />
+                  <span className="truncate">Continue Learning</span>
                 </h2>
-                <Link to="/my-courses" className="text-sm text-purple-600 hover:underline">View all</Link>
+
+                <Link
+                  to="/my-courses"
+                  className="text-xs sm:text-sm text-purple-600 hover:underline whitespace-nowrap flex-shrink-0"
+                >
+                  View all
+                </Link>
               </div>
               {recentCourses.length > 0 ? (
                 <div className="space-y-3">
                   {recentCourses.map((courseData, index) => (
-                    <Link key={index} to={`/courses/${courseData.course?.slug}`}
-                      className="block p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors">
+                    <Link
+                      key={index}
+                      to={`/courses/${courseData.course?.slug}`}
+                      className="block p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors"
+                    >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm text-gray-900 line-clamp-1">{courseData.course?.title || 'Course'}</span>
-                        <span className="text-xs text-gray-500">{courseData.progress}%</span>
+                        <span className="font-medium text-sm text-gray-900 line-clamp-1">
+                          {courseData.course?.title || "Course"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {courseData.progress}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${courseData.progress}%` }} />
+                        <div
+                          className="bg-purple-600 h-2 rounded-full transition-all"
+                          style={{ width: `${courseData.progress}%` }}
+                        />
                       </div>
                     </Link>
                   ))}
@@ -381,7 +498,12 @@ const UserDashboard = () => {
                 <div className="text-center py-8 text-gray-500">
                   <BookOpen className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                   <p>No courses yet</p>
-                  <Link to="/courses" className="text-purple-600 text-sm mt-2 inline-block">Browse courses</Link>
+                  <Link
+                    to="/courses"
+                    className="text-purple-600 text-sm mt-2 inline-block"
+                  >
+                    Browse courses
+                  </Link>
                 </div>
               )}
             </div>
@@ -390,13 +512,23 @@ const UserDashboard = () => {
       )}
 
       {/* Profile Tab */}
-      {activeTab === 'profile' && (
+      {activeTab === "profile" && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">My Profile</h2>
-            <button onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-              {isEditingProfile ? <><X className="w-4 h-4" /> Cancel</> : <><Edit3 className="w-4 h-4" /> Edit</>}
+            <button
+              onClick={() => setIsEditingProfile(!isEditingProfile)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              {isEditingProfile ? (
+                <>
+                  <X className="w-4 h-4" /> Cancel
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-4 h-4" /> Edit
+                </>
+              )}
             </button>
           </div>
 
@@ -406,14 +538,25 @@ const UserDashboard = () => {
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
                     {avatarPreview ? (
-                      <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                      <img
+                        src={avatarPreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center"><User className="w-10 h-10 text-gray-400" /></div>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-10 h-10 text-gray-400" />
+                      </div>
                     )}
                   </div>
                   <label className="absolute bottom-0 right-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700">
                     <Camera className="w-4 h-4 text-white" />
-                    <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
                   </label>
                 </div>
                 <div>
@@ -423,23 +566,45 @@ const UserDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" value={profileData.fullName}
-                  onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={profileData.fullName}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, fullName: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" value={profileData.phone}
-                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={profileData.phone}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, phone: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                  placeholder="01XXXXXXXXX" />
+                  placeholder="01XXXXXXXXX"
+                />
               </div>
 
-              <button type="submit" disabled={authLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50">
-                {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Save Changes
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              >
+                {authLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}{" "}
+                Save Changes
               </button>
             </form>
           ) : (
@@ -447,15 +612,21 @@ const UserDashboard = () => {
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
                   {user?.avatar ? (
-                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    <img
+                      src={user.avatar}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center"><User className="w-10 h-10 text-gray-400" /></div>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-10 h-10 text-gray-400" />
+                    </div>
                   )}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">{user?.fullName}</h3>
                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                    {user?.role === 'admin' ? 'Administrator' : 'Member'}
+                    {user?.role === "admin" ? "Administrator" : "Member"}
                   </span>
                 </div>
               </div>
@@ -467,9 +638,16 @@ const UserDashboard = () => {
                     <p className="text-sm text-gray-500">Email</p>
                     <p className="font-medium">{user?.email}</p>
                     {user?.isVerified ? (
-                      <span className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> Verified</span>
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Verified
+                      </span>
                     ) : (
-                      <button onClick={handleResendVerification} className="text-xs text-yellow-600 underline">Resend verification</button>
+                      <button
+                        onClick={handleResendVerification}
+                        className="text-xs text-yellow-600 underline"
+                      >
+                        Resend verification
+                      </button>
                     )}
                   </div>
                 </div>
@@ -478,7 +656,9 @@ const UserDashboard = () => {
                   <Phone className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-500">Phone</p>
-                    <p className="font-medium">{user?.phone || 'Not provided'}</p>
+                    <p className="font-medium">
+                      {user?.phone || "Not provided"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -488,82 +668,205 @@ const UserDashboard = () => {
       )}
 
       {/* Addresses Tab - FIXED with Redux */}
-      {activeTab === 'addresses' && (
+      {activeTab === "addresses" && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">My Addresses ({user?.addresses?.length || 0})</h2>
-            <button onClick={() => {
-              setShowAddressForm(!showAddressForm);
-              setEditingAddressId(null);
-              setAddressFormData({ fullName: '', phone: '', address: '', city: '', district: '', postalCode: '', isDefault: false });
-            }} disabled={authLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50">
-              {showAddressForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Address</>}
+          <div className="flex items-center justify-between mb-6 gap-2">
+            {/* Title: ৩২০ পিক্সেলে যেন ভেঙে না যায় তাই text-base করা হয়েছে */}
+            <h2 className="text-base sm:text-xl font-bold text-gray-900 whitespace-nowrap">
+              My Addresses ({user?.addresses?.length || 0})
+            </h2>
+
+            {/* Button: px-2 এবং text-xs দিয়ে ছোট করা হয়েছে যেন পাশে জায়গা পায় */}
+            <button
+              onClick={() => {
+                setShowAddressForm(!showAddressForm);
+                setEditingAddressId(null);
+                setAddressFormData({
+                  fullName: "",
+                  phone: "",
+                  address: "",
+                  city: "",
+                  district: "",
+                  postalCode: "",
+                  isDefault: false,
+                });
+              }}
+              disabled={authLoading}
+              className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 text-white text-[11px] sm:text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 flex-shrink-0"
+            >
+              {showAddressForm ? (
+                <>
+                  <X className="w-3.5 h-3.5" /> <span>Cancel</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" /> <span>Add Address</span>
+                </>
+              )}
             </button>
           </div>
 
           {showAddressForm && (
-            <form onSubmit={editingAddressId ? handleUpdateAddress : handleAddAddress} className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3">
+            <form
+              onSubmit={
+                editingAddressId ? handleUpdateAddress : handleAddAddress
+              }
+              className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3"
+            >
               <div className="grid md:grid-cols-2 gap-3">
-                <input type="text" placeholder="Full Name" value={addressFormData.fullName}
-                  onChange={(e) => setAddressFormData({...addressFormData, fullName: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
-                <input type="tel" placeholder="Phone" value={addressFormData.phone}
-                  onChange={(e) => setAddressFormData({...addressFormData, phone: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={addressFormData.fullName}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      fullName: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone"
+                  value={addressFormData.phone}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      phone: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
               </div>
-              <textarea placeholder="Address" value={addressFormData.address}
-                onChange={(e) => setAddressFormData({...addressFormData, address: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2" required />
+              <textarea
+                placeholder="Address"
+                value={addressFormData.address}
+                onChange={(e) =>
+                  setAddressFormData({
+                    ...addressFormData,
+                    address: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                rows="2"
+                required
+              />
               <div className="grid md:grid-cols-3 gap-3">
-                <input type="text" placeholder="City" value={addressFormData.city}
-                  onChange={(e) => setAddressFormData({...addressFormData, city: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
-                <input type="text" placeholder="District" value={addressFormData.district}
-                  onChange={(e) => setAddressFormData({...addressFormData, district: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                <input type="text" placeholder="Postal Code" value={addressFormData.postalCode}
-                  onChange={(e) => setAddressFormData({...addressFormData, postalCode: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={addressFormData.city}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      city: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="District"
+                  value={addressFormData.district}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      district: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="text"
+                  placeholder="Postal Code"
+                  value={addressFormData.postalCode}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      postalCode: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
               </div>
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={addressFormData.isDefault}
-                  onChange={(e) => setAddressFormData({...addressFormData, isDefault: e.target.checked})}
-                  className="rounded" />
+                <input
+                  type="checkbox"
+                  checked={addressFormData.isDefault}
+                  onChange={(e) =>
+                    setAddressFormData({
+                      ...addressFormData,
+                      isDefault: e.target.checked,
+                    })
+                  }
+                  className="rounded"
+                />
                 <span className="text-sm">Set as default address</span>
               </label>
-              <button type="submit" disabled={authLoading}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50">
-                {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAddressId ? 'Update Address' : 'Save Address')}
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              >
+                {authLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : editingAddressId ? (
+                  "Update Address"
+                ) : (
+                  "Save Address"
+                )}
               </button>
             </form>
           )}
 
           <div className="space-y-3">
-            {user?.addresses?.length > 0 ? user.addresses.map((addr) => (
-              <div key={addr._id} className={`p-4 border rounded-lg ${addr.isDefault ? 'border-purple-500 bg-purple-50' : 'border-gray-200'}`}>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{addr.fullName}</p>
-                      {addr.isDefault && <span className="px-2 py-0.5 bg-purple-600 text-white text-xs rounded">Default</span>}
+            {user?.addresses?.length > 0 ? (
+              user.addresses.map((addr) => (
+                <div
+                  key={addr._id}
+                  className={`p-4 border rounded-lg ${addr.isDefault ? "border-purple-500 bg-purple-50" : "border-gray-200"}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{addr.fullName}</p>
+                        {addr.isDefault && (
+                          <span className="px-2 py-0.5 bg-purple-600 text-white text-xs rounded">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{addr.phone}</p>
+                      <p className="text-sm text-gray-600">{addr.address}</p>
+                      <p className="text-sm text-gray-600">
+                        {addr.city}
+                        {addr.district && `, ${addr.district}`}{" "}
+                        {addr.postalCode}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{addr.phone}</p>
-                    <p className="text-sm text-gray-600">{addr.address}</p>
-                    <p className="text-sm text-gray-600">{addr.city}{addr.district && `, ${addr.district}`} {addr.postalCode}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => startEditAddress(addr)} className="p-2 text-gray-600 hover:text-purple-600">
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDeleteAddress(addr._id)} disabled={authLoading}
-                      className="p-2 text-gray-600 hover:text-red-600 disabled:opacity-50">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEditAddress(addr)}
+                        className="p-2 text-gray-600 hover:text-purple-600"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAddress(addr._id)}
+                        disabled={authLoading}
+                        className="p-2 text-gray-600 hover:text-red-600 disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )) : (
+              ))
+            ) : (
               <div className="text-center py-8 text-gray-500">
                 <MapPin className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                 <p>No addresses saved</p>
@@ -573,8 +876,6 @@ const UserDashboard = () => {
         </div>
       )}
 
-
-
       {/* Verification Banner */}
       {!user?.isVerified && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center justify-between">
@@ -582,10 +883,15 @@ const UserDashboard = () => {
             <AlertCircle className="w-5 h-5 text-yellow-600" />
             <div>
               <p className="font-medium text-yellow-900">Verify your email</p>
-              <p className="text-sm text-yellow-700">Please verify to access all features</p>
+              <p className="text-sm text-yellow-700">
+                Please verify to access all features
+              </p>
             </div>
           </div>
-          <button onClick={handleResendVerification} className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
+          <button
+            onClick={handleResendVerification}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700"
+          >
             Resend Email
           </button>
         </div>

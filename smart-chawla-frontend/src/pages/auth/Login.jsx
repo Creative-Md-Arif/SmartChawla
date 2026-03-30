@@ -147,13 +147,17 @@ const Login = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-4 sm:mt-8 sm:space-y-6"
+          noValidate
+        >
           {/* General Error Message */}
           {(errors.general || apiError) && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+            <div className="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 rounded-md">
               <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
-                <p className="text-sm text-red-700">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mr-2 shrink-0" />
+                <p className="text-[12px] sm:text-sm text-red-700 leading-tight">
                   {errors.general || apiError}
                 </p>
               </div>
@@ -164,13 +168,13 @@ const Login = () => {
           <div className="space-y-1">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-[13px] sm:text-sm font-medium text-gray-700 ml-0.5"
             >
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </div>
               <input
                 id="email"
@@ -181,17 +185,18 @@ const Login = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 onFocus={handleFocus}
-                className={`block w-full pl-10 pr-3 py-3 border ${
+                // ৩২০px এর জন্য প্যাডিং এবং টেক্সট সাইজ কমানো হয়েছে
+                className={`block w-full pl-9 sm:pl-10 pr-3 py-2.5 sm:py-3 border ${
                   getFieldError("email")
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-                } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
+                } rounded-lg text-[13px] sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
                 placeholder="you@example.com"
               />
             </div>
             {getFieldError("email") && (
-              <p className="text-sm text-red-600 flex items-center mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
+              <p className="text-[11px] sm:text-sm text-red-600 flex items-center mt-1 ml-0.5">
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 shrink-0" />
                 {getFieldError("email")}
               </p>
             )}
@@ -201,13 +206,13 @@ const Login = () => {
           <div className="space-y-1">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-[13px] sm:text-sm font-medium text-gray-700 ml-0.5"
             >
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </div>
               <input
                 id="password"
@@ -218,11 +223,11 @@ const Login = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 onFocus={handleFocus}
-                className={`block w-full pl-10 pr-10 py-3 border ${
+                className={`block w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 sm:py-3 border ${
                   getFieldError("password")
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 focus:ring-purple-500 focus:border-purple-500"
-                } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
+                } rounded-lg text-[13px] sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
                 placeholder="••••••••"
               />
               <button
@@ -231,58 +236,58 @@ const Login = () => {
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
+                  <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
                 ) : (
-                  <Eye className="h-5 w-5" />
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
                 )}
               </button>
             </div>
             {getFieldError("password") && (
-              <p className="text-sm text-red-600 flex items-center mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
+              <p className="text-[11px] sm:text-sm text-red-600 flex items-center mt-1 ml-0.5">
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 shrink-0" />
                 {getFieldError("password")}
               </p>
             )}
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* Remember & Forgot - ছোট স্ক্রিনে সুন্দর দেখানোর জন্য */}
+          <div className="flex items-center justify-between gap-1">
             <div className="flex items-center">
               <input
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900"
+                className="ml-1.5 block text-[12px] sm:text-sm text-gray-900 whitespace-nowrap"
               >
                 Remember me
               </label>
             </div>
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-purple-600 hover:text-purple-500"
+              className="text-[12px] sm:text-sm font-medium text-purple-600 hover:text-purple-500"
             >
               Forgot password?
             </Link>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading || !isFormValid}
-            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white ${
+            className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white ${
               isFormValid
-                ? "bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                ? "bg-purple-600 hover:bg-purple-700 focus:outline-none"
                 : "bg-gray-400 cursor-not-allowed"
             } transition-colors`}
           >
             {loading ? (
-              <div className="flex items-center">
+              <div className="flex items-center text-[13px] sm:text-sm">
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                   viewBox="0 0 24 24"
                 >
                   <circle
@@ -306,13 +311,14 @@ const Login = () => {
             )}
           </button>
 
-          <p className="text-center text-sm text-gray-600">
+          {/* Register Link */}
+          <p className="text-center text-[12px] sm:text-sm text-gray-600">
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-medium text-purple-600 hover:text-purple-500"
+              className="font-semibold text-purple-600 hover:text-purple-500"
             >
-              Create one now
+              Create one
             </Link>
           </p>
         </form>

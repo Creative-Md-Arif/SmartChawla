@@ -1,18 +1,22 @@
 // components/auth/Register.jsx
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { registerUser, clearError, setRegistrationEmail } from '../../redux/slices/authSlice';
-import { User, Mail, Phone, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
-import InputField from '../../components/form/InputField';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  registerUser,
+  clearError,
+  setRegistrationEmail,
+} from "../../redux/slices/authSlice";
+import { User, Mail, Phone, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import InputField from "../../components/form/InputField";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
   });
   const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +25,9 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, registrationEmail } = useSelector((state) => state.auth);
+  const { loading, error, registrationEmail } = useSelector(
+    (state) => state.auth,
+  );
 
   // Clear errors on mount
   useEffect(() => {
@@ -31,61 +37,61 @@ const Register = () => {
   // Redirect to OTP if registration successful
   useEffect(() => {
     if (registrationEmail) {
-      navigate('/verify-otp', { 
-        state: { email: registrationEmail } 
+      navigate("/verify-otp", {
+        state: { email: registrationEmail },
       });
     }
   }, [registrationEmail, navigate]);
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.fullName.trim() || formData.fullName.length < 3) {
-      errors.fullName = 'Full name must be at least 3 characters';
+      errors.fullName = "Full name must be at least 3 characters";
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      errors.email = 'Please enter a valid email';
+      errors.email = "Please enter a valid email";
     }
-    
+
     const phoneRegex = /^01[3-9]\d{8}$/;
     if (!phoneRegex.test(formData.phone)) {
-      errors.phone = 'Valid Bangladesh number: 01XXXXXXXXX';
+      errors.phone = "Valid Bangladesh number: 01XXXXXXXXX";
     }
-    
+
     if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = "Password must be at least 6 characters";
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = "Passwords do not match";
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear field error on change
     if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+      setValidationErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
     if (!agreed) return;
 
     const { confirmPassword, ...submitData } = formData;
-    
+
     const result = await dispatch(registerUser(submitData));
-    
-    if (result.meta.requestStatus === 'fulfilled') {
+
+    if (result.meta.requestStatus === "fulfilled") {
       // Email stored in Redux, useEffect will redirect
       dispatch(setRegistrationEmail(result.payload.email));
     }
@@ -94,16 +100,23 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-          <p className="mt-2 text-gray-600">Join Smart Chawla today</p>
+        <div className="text-center px-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            Create Account
+          </h2>
+          <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-gray-600">
+            Join Smart Chawla today
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-8 rounded-xl shadow-lg">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-4 sm:space-y-6 bg-white p-4 sm:p-5 md:p-8 rounded-xl shadow-lg"
+        >
           {/* Global Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center gap-2">
-              <span className="text-sm">{error}</span>
+            <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-lg flex items-center gap-2">
+              <span className="text-[13px] sm:text-sm">{error}</span>
             </div>
           )}
 
@@ -111,7 +124,7 @@ const Register = () => {
           <InputField
             label="Full Name"
             name="fullName"
-            placeholder="Enter your full name"
+            placeholder="Full name"
             value={formData.fullName}
             onChange={handleChange}
             leftIcon={User}
@@ -150,8 +163,8 @@ const Register = () => {
             <InputField
               label="Password"
               name="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Create a password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
               value={formData.password}
               onChange={handleChange}
               leftIcon={Lock}
@@ -161,9 +174,10 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[34px] text-gray-400 hover:text-gray-600"
+              // ৩২০px স্ক্রিনের জন্য আইকনের টপ পজিশন নিখুঁত করা হয়েছে
+              className="absolute right-3 top-[32px] sm:top-[34px] text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
@@ -172,8 +186,8 @@ const Register = () => {
             <InputField
               label="Confirm Password"
               name="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm password"
               value={formData.confirmPassword}
               onChange={handleChange}
               leftIcon={Lock}
@@ -183,27 +197,33 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-[34px] text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-[32px] sm:top-[34px] text-gray-400 hover:text-gray-600"
             >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 
           {/* Terms Checkbox */}
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex items-start gap-2 sm:gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="w-5 h-5 mt-0.5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              className="w-4 h-4 sm:w-5 sm:h-5 mt-1 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
             />
-            <span className="text-sm text-gray-600">
-              I agree to the{' '}
-              <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <span className="text-[12px] sm:text-sm text-gray-600 leading-tight">
+              I agree to the{" "}
+              <Link
+                to="#"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="#"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
+              >
                 Privacy Policy
               </Link>
             </span>
@@ -213,25 +233,25 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading || !agreed}
-            className="w-full py-3.5 px-4 bg-indigo-600 text-white font-semibold rounded-lg
-              hover:bg-indigo-700 active:bg-indigo-800 
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
           >
             {loading ? (
               <>
-                <Loader2 className="animate-spin h-5 w-5" />
-                Creating account...
+                <Loader2 className="animate-spin h-4 w-4 sm:h-5 sm:w-5" />
+                <span>Creating...</span>
               </>
             ) : (
-              'Create Account'
+              "Create Account"
             )}
           </button>
 
           {/* Login Link */}
-          <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+          <p className="text-center text-[13px] sm:text-sm text-gray-600 mt-2">
+            Have an account?{" "}
+            <Link
+              to="/login"
+              className="text-indigo-600 hover:text-indigo-700 font-semibold"
+            >
               Sign in
             </Link>
           </p>
