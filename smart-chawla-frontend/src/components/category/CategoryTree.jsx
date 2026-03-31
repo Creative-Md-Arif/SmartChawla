@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, MoreVertical, Plus, Edit2, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen,  Plus, Edit2, Trash2 } from 'lucide-react';
 
 const CategoryTree = ({
   categories,
@@ -63,13 +63,13 @@ const CategoryTree = ({
           className={`
             flex items-center py-2 px-3 rounded-lg cursor-pointer
             transition-colors duration-200
-            ${isSelected  'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'}
-            ${isDragOver  'border-2 border-purple-400 border-dashed' : ''}
-            ${depth > 0  'ml-6' : ''}
+       ${isSelected ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'}
+            ${isDragOver ? 'border-2 border-purple-400 border-dashed' : ''}
+            ${depth > 0 ? 'ml-6' : ''}
           `}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
-          {/* Expand/Collapse */}
+      
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -77,8 +77,8 @@ const CategoryTree = ({
             }}
             className="p-1 mr-1 text-gray-400 hover:text-gray-600"
           >
-            {hasChildren  (
-              isExpanded  (
+            {hasChildren ? (
+              isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
               ) : (
                 <ChevronRight className="w-4 h-4" />
@@ -90,7 +90,7 @@ const CategoryTree = ({
 
           {/* Folder Icon */}
           <div className="mr-2 text-gray-400">
-            {isExpanded  (
+          {isExpanded ? (
               <FolderOpen className="w-5 h-5" />
             ) : (
               <Folder className="w-5 h-5" />
@@ -147,7 +147,7 @@ const CategoryTree = ({
           )}
         </div>
 
-        {/* Children */}
+
         {isExpanded && hasChildren && (
           <div className="mt-1">
             {category.subCategories?.map((sub) =>
@@ -156,7 +156,7 @@ const CategoryTree = ({
           </div>
         )}
       </div>
-    );
+    )
   };
 
   return (

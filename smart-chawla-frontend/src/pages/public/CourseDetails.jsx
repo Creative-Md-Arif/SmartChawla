@@ -117,7 +117,7 @@ const CourseDetails = ({ preview = false, index = 0 }) => {
 
           // Fallback: যদি videoUrl না থাকে
           if (!cloudinaryUrl && lesson.videoId?.includes("smart-chawla")) {
-            cloudinaryUrl = `https://res.cloudinary.com/dyxejdy0e/video/upload/${lesson.videoId}.mp4`;
+            cloudinaryUrl = `https://res.cloudinary.com/dyxejdy0e/video/upload/f_auto,q_auto/${lesson.videoId}.mp4`;
           }
 
           return {
