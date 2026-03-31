@@ -379,6 +379,8 @@ const Home = () => {
                       <img
                         src={category.featuredImage.url}
                         alt={category.name.en}
+                        loading="lazy"
+                        fetchpriority="high"
                         className="w-7 h-7 object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (

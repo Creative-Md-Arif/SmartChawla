@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { BookOpen, Play, CheckCircle } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import axiosInstance from '../../utils/axiosInstance';
-import { CourseCardSkeleton } from '../../components/common/Loader';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { BookOpen, Play, CheckCircle } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import axiosInstance from "../../utils/axiosInstance";
+import { CourseCardSkeleton } from "../../components/common/Loader";
 import {
   selectEnrolledCourses,
   syncEnrollments,
-  clearEnrollments,  // ✅ এটি import করুন
+  clearEnrollments, // ✅ এটি import করুন
 } from "../../redux/slices/enrollSlice";
 
 const MyCourses = () => {
   const dispatch = useDispatch();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [apiError, setApiError] = useState(false);  // ✅ error track করুন
+  const [apiError, setApiError] = useState(false); // ✅ error track করুন
 
   // ✅ Redux থেকে enrollments নিন
   const reduxEnrollments = useSelector(selectEnrolledCourses);
@@ -23,71 +23,70 @@ const MyCourses = () => {
     fetchMyCourses();
   }, []);
 
-const fetchMyCourses = async () => {
-  try {
-    setLoading(true);
-    setApiError(false);
-    
-    // ১. API থেকে এনরোল্ড কোর্সের ডাটা আনা
-    const response = await axiosInstance.get('/courses/my/enrolled');
-    
-    // আপনার রেসপন্স অবজেক্ট অনুযায়ী: response.data.courses হচ্ছে অ্যারে
-    const apiCourses = response.data.courses || [];
+  const fetchMyCourses = async () => {
+    try {
+      setLoading(true);
+      setApiError(false);
 
-    console.log('Fetched Enrollments:', apiCourses);
+      // ১. API থেকে এনরোল্ড কোর্সের ডাটা আনা
+      const response = await axiosInstance.get("/courses/my/enrolled");
 
-    // ২. যদি কোনো কোর্স না থাকে, তবে স্টেট এবং রেডক্স ক্লিয়ার করা
-    if (apiCourses.length === 0) {
-      setCourses([]);
-      dispatch(clearEnrollments());
-      setLoading(false);
-      return;
-    }
+      // আপনার রেসপন্স অবজেক্ট অনুযায়ী: response.data.courses হচ্ছে অ্যারে
+      const apiCourses = response.data.courses || [];
 
-    // ৩. ডাটাবেসে ডাটা থাকলে তা সরাসরি সেভ করা 
-    // (অতিরিক্ত paymentStatus ফিল্টার বাদ দেওয়া হয়েছে যাতে ডাটা মিস না হয়)
-    setCourses(apiCourses);
+      console.log("Fetched Enrollments:", apiCourses);
 
-    // ৪. Redux Sync এর জন্য ডাটা ম্যাপিং
-    const enrollmentsForRedux = apiCourses.map((item) => {
-      // কিছু ক্ষেত্রে ডাটা item.course এর ভেতরে থাকে, আবার কিছু ক্ষেত্রে item এর সরাসরি ভেতরে
-      const c = item.course || item; 
-      
-      return {
-        courseId: c._id, // ডাটাবেসের অবজেক্ট আইডি
-        slug: c.slug,
-        title: c.title,
-        price: c.price,
-        thumbnail: c.thumbnail,
-        instructor: c.instructor,
-        duration: c.duration,
-        level: c.level,
-        progress: item.progress || 0,
-        lastAccessed: item.lastAccessed || new Date().toISOString(),
-        completedLessons: item.completedLessons || [],
-        status: item.status || 'active',
-      };
-    });
-
-    // ৫. রেডক্স স্টোর আপডেট করা
-    dispatch(syncEnrollments(enrollmentsForRedux));
-    
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    setApiError(true);
-    // এরর হলে অন্তত রেডক্স থেকে আগের ডাটা দেখানোর চেষ্টা করা (Fallback)
-    if (reduxEnrollments && reduxEnrollments.length > 0) {
-        setCourses(reduxEnrollments.map(re => ({ course: re, ...re })));
-    } else {
+      // ২. যদি কোনো কোর্স না থাকে, তবে স্টেট এবং রেডক্স ক্লিয়ার করা
+      if (apiCourses.length === 0) {
         setCourses([]);
+        dispatch(clearEnrollments());
+        setLoading(false);
+        return;
+      }
+
+      // ৩. ডাটাবেসে ডাটা থাকলে তা সরাসরি সেভ করা
+      // (অতিরিক্ত paymentStatus ফিল্টার বাদ দেওয়া হয়েছে যাতে ডাটা মিস না হয়)
+      setCourses(apiCourses);
+
+      // ৪. Redux Sync এর জন্য ডাটা ম্যাপিং
+      const enrollmentsForRedux = apiCourses.map((item) => {
+        // কিছু ক্ষেত্রে ডাটা item.course এর ভেতরে থাকে, আবার কিছু ক্ষেত্রে item এর সরাসরি ভেতরে
+        const c = item.course || item;
+
+        return {
+          courseId: c._id, // ডাটাবেসের অবজেক্ট আইডি
+          slug: c.slug,
+          title: c.title,
+          price: c.price,
+          thumbnail: c.thumbnail,
+          instructor: c.instructor,
+          duration: c.duration,
+          level: c.level,
+          progress: item.progress || 0,
+          lastAccessed: item.lastAccessed || new Date().toISOString(),
+          completedLessons: item.completedLessons || [],
+          status: item.status || "active",
+        };
+      });
+
+      // ৫. রেডক্স স্টোর আপডেট করা
+      dispatch(syncEnrollments(enrollmentsForRedux));
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setApiError(true);
+      // এরর হলে অন্তত রেডক্স থেকে আগের ডাটা দেখানোর চেষ্টা করা (Fallback)
+      if (reduxEnrollments && reduxEnrollments.length > 0) {
+        setCourses(reduxEnrollments.map((re) => ({ course: re, ...re })));
+      } else {
+        setCourses([]);
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // ✅ শুধু API data দেখান, Redux নয় (কারণ API source of truth)
-  const displayCourses = courses;  // ❌ Redux fallback রিমুভ করুন
+  const displayCourses = courses; // ❌ Redux fallback রিমুভ করুন
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -105,13 +104,13 @@ const fetchMyCourses = async () => {
           <p className="text-gray-500 text-lg mb-4">
             You haven't enrolled in any courses yet
           </p>
-          
+
           {apiError && (
             <p className="text-red-500 text-sm mb-4">
               Failed to load courses. Please try again.
             </p>
           )}
-          
+
           <Link
             to="/courses"
             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -130,9 +129,11 @@ const fetchMyCourses = async () => {
                 <img
                   src={
                     enrollment.course?.thumbnail?.url ||
-                    '/placeholder-course.jpg'
+                    "/placeholder-course.jpg"
                   }
                   alt={enrollment.course?.title}
+                  loading="lazy"
+                  fetchpriority="high"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -170,10 +171,10 @@ const fetchMyCourses = async () => {
 
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm text-gray-500">
-                    Last accessed:{' '}
-                    {enrollment.lastAccessed 
+                    Last accessed:{" "}
+                    {enrollment.lastAccessed
                       ? new Date(enrollment.lastAccessed).toLocaleDateString()
-                      : 'Never'}
+                      : "Never"}
                   </span>
                   {enrollment.progress === 100 && (
                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -185,8 +186,8 @@ const fetchMyCourses = async () => {
                   className="mt-4 block w-full text-center py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                 >
                   {(enrollment.progress || 0) > 0
-                    ? 'Continue Learning'
-                    : 'Start Learning'}
+                    ? "Continue Learning"
+                    : "Start Learning"}
                 </Link>
               </div>
             </div>

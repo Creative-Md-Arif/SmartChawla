@@ -1,15 +1,15 @@
-import { Link } from 'react-router-dom';
-import { useCategories } from '../../hooks/useCategories';
-import { 
-  Grid3X3, 
-  ArrowRight, 
+import { Link } from "react-router-dom";
+import { useCategories } from "../../hooks/useCategories";
+import {
+  Grid3X3,
+  ArrowRight,
   FolderOpen,
   Sparkles,
   AlertCircle,
   RefreshCw,
-  Package
-} from 'lucide-react';
-import { useState } from 'react';
+  Package,
+} from "lucide-react";
+import { useState } from "react";
 
 const CategoryList = () => {
   const { categories, loading, error, refetch } = useCategories({ tree: true });
@@ -20,8 +20,10 @@ const CategoryList = () => {
   const CategorySkeleton = () => (
     <div className="bg-white rounded-2xl shadow-soft border border-neutral-100 overflow-hidden">
       <div className="h-48 bg-neutral-100 animate-pulse relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" 
-             style={{ backgroundSize: '200% 100%' }} />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+          style={{ backgroundSize: "200% 100%" }}
+        />
       </div>
       <div className="p-6 space-y-3">
         <div className="h-6 bg-neutral-100 rounded-lg w-3/4 animate-pulse" />
@@ -46,7 +48,8 @@ const CategoryList = () => {
             ক্যাটাগরি লোড করতে সমস্যা
           </h3>
           <p className="text-neutral-500 text-sm mb-6">
-            {error.message || "সার্ভারে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"}
+            {error.message ||
+              "সার্ভারে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"}
           </p>
           <button
             onClick={refetch}
@@ -94,7 +97,7 @@ const CategoryList = () => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2 text-sm text-neutral-500 bg-neutral-50 px-4 py-2 rounded-full border border-neutral-100">
           <Sparkles className="w-4 h-4 text-primary-500" />
           <span className="font-bangla">নতুন পণ্য যোগ হচ্ছে প্রতিদিন</span>
@@ -106,7 +109,7 @@ const CategoryList = () => {
         {categories.map((category, index) => {
           const isHovered = hoveredId === category._id;
           const hasImage = !!category.featuredImage?.url;
-          
+
           return (
             <div
               key={category._id}
@@ -119,57 +122,79 @@ const CategoryList = () => {
               onMouseLeave={() => setHoveredId(null)}
             >
               {/* Image Section */}
-              <Link to={`/category/${category.slug}`} className="relative block h-48 overflow-hidden">
+              <Link
+                to={`/category/${category.slug}`}
+                className="relative block h-48 overflow-hidden"
+              >
                 <div className="absolute inset-0 bg-neutral-50">
                   {!imageLoaded[category._id] && hasImage && (
                     <div className="absolute inset-0 bg-neutral-100 animate-pulse">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" 
-                           style={{ backgroundSize: '200% 100%' }} />
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+                        style={{ backgroundSize: "200% 100%" }}
+                      />
                     </div>
                   )}
-                  
+
                   {hasImage ? (
                     <img
                       src={category.featuredImage.url}
                       alt={category.name.en}
-                      onLoad={() => setImageLoaded(prev => ({ ...prev, [category._id]: true }))}
+                      loading="lazy"
+                      fetchpriority="high"
+                      onLoad={() =>
+                        setImageLoaded((prev) => ({
+                          ...prev,
+                          [category._id]: true,
+                        }))
+                      }
                       className={`
                         w-full h-full object-cover transition-all duration-700 ease-out
-                        ${isHovered ? 'scale-110' : 'scale-100'}
-                        ${imageLoaded[category._id] ? 'opacity-100' : 'opacity-0'}
+                        ${isHovered ? "scale-110" : "scale-100"}
+                        ${imageLoaded[category._id] ? "opacity-100" : "opacity-0"}
                       `}
                     />
                   ) : (
-                    <div className={`
+                    <div
+                      className={`
                       w-full h-full flex items-center justify-center transition-colors duration-300
-                      ${isHovered ? 'bg-primary-50' : 'bg-neutral-50'}
-                    `}>
-                      <div className={`
+                      ${isHovered ? "bg-primary-50" : "bg-neutral-50"}
+                    `}
+                    >
+                      <div
+                        className={`
                         p-6 rounded-2xl transition-all duration-500
-                        ${isHovered ? 'bg-primary-100 scale-110' : 'bg-neutral-100'}
-                      `}>
-                        <Grid3X3 className={`
+                        ${isHovered ? "bg-primary-100 scale-110" : "bg-neutral-100"}
+                      `}
+                      >
+                        <Grid3X3
+                          className={`
                           w-12 h-12 transition-colors duration-300
-                          ${isHovered ? 'text-primary-500' : 'text-neutral-300'}
-                        `} />
+                          ${isHovered ? "text-primary-500" : "text-neutral-300"}
+                        `}
+                        />
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Overlay Gradient */}
-                  <div className={`
+                  <div
+                    className={`
                     absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-neutral-900/10 to-transparent
                     transition-opacity duration-500
-                    ${isHovered ? 'opacity-100' : 'opacity-0'}
-                  `} />
-                  
+                    ${isHovered ? "opacity-100" : "opacity-0"}
+                  `}
+                  />
+
                   {/* Product Count Badge */}
-                  <div className={`
+                  <div
+                    className={`
                     absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-neutral-700 
                     text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center
                     transition-all duration-300
-                    ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'}
-                  `}>
+                    ${isHovered ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}
+                  `}
+                  >
                     <Package className="w-3.5 h-3.5 mr-1.5 text-primary-500" />
                     {category.productCount || 0} পণ্য
                   </div>
@@ -179,17 +204,21 @@ const CategoryList = () => {
               {/* Content Section */}
               <div className="p-6">
                 <Link to={`/category/${category.slug}`}>
-                  <h2 className={`
+                  <h2
+                    className={`
                     text-xl font-semibold text-neutral-800 font-bangla mb-1
                     transition-colors duration-300
-                    ${isHovered ? 'text-primary-600' : ''}
-                  `}>
+                    ${isHovered ? "text-primary-600" : ""}
+                  `}
+                  >
                     {category.name.bn || category.name.en}
                   </h2>
                 </Link>
-                
+
                 <p className="text-sm text-neutral-500 mb-4">
-                  {category.description?.bn || category.description?.en || 'বিভিন্ন ধরনের পণ্য পাবেন এই ক্যাটাগরিতে'}
+                  {category.description?.bn ||
+                    category.description?.en ||
+                    "বিভিন্ন ধরনের পণ্য পাবেন এই ক্যাটাগরিতে"}
                 </p>
 
                 {/* Sub-categories */}
@@ -223,33 +252,41 @@ const CategoryList = () => {
                   to={`/category/${category.slug}`}
                   className={`
                     inline-flex items-center text-sm font-medium transition-all duration-300 group/link
-                    ${isHovered ? 'text-primary-600' : 'text-neutral-600'}
+                    ${isHovered ? "text-primary-600" : "text-neutral-600"}
                   `}
                 >
-                  <span className={`
+                  <span
+                    className={`
                     relative font-bangla
-                    ${isHovered ? 'translate-x-0' : ''}
-                  `}>
+                    ${isHovered ? "translate-x-0" : ""}
+                  `}
+                  >
                     সব পণ্য দেখুন
                   </span>
-                  <ArrowRight className={`
+                  <ArrowRight
+                    className={`
                     w-4 h-4 ml-2 transition-all duration-300
-                    ${isHovered ? 'translate-x-1 text-primary-500' : ''}
-                  `} />
-                  
+                    ${isHovered ? "translate-x-1 text-primary-500" : ""}
+                  `}
+                  />
+
                   {/* Underline animation */}
-                  <span className={`
+                  <span
+                    className={`
                     absolute bottom-0 left-0 h-0.5 bg-primary-500 transition-all duration-300
-                    ${isHovered ? 'w-full' : 'w-0'}
-                  `} />
+                    ${isHovered ? "w-full" : "w-0"}
+                  `}
+                  />
                 </Link>
               </div>
 
               {/* Hover Glow Effect */}
-              <div className={`
+              <div
+                className={`
                 absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500
-                ${isHovered ? 'opacity-100' : 'opacity-0'}
-              `}>
+                ${isHovered ? "opacity-100" : "opacity-0"}
+              `}
+              >
                 <div className="absolute inset-0 rounded-2xl ring-2 ring-primary-200 ring-offset-2" />
               </div>
             </div>

@@ -62,6 +62,8 @@ const Cart = () => {
                 src={item.image || "/placeholder.jpg"}
                 alt={item.name}
                 className="w-20 h-20 object-cover rounded-lg shrink-0"
+                loading="lazy"
+                fetchpriority="high"
               />
 
               {/* টেক্সট সেকশন - মোবাইলে সেন্টার অ্যালাইন করা হয়েছে */}

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -9,9 +9,9 @@ import {
   LogOut,
   User,
   ChevronRight,
-} from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../redux/slices/authSlice';
+} from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../redux/slices/authSlice";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -19,12 +19,12 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useSelector((state) => state.auth);
 
   const menuItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'My Orders', href: '/my-orders', icon: ShoppingBag },
-    { name: 'My Courses', href: '/my-courses', icon: BookOpen },
-    { name: 'Cart', href: '/cart', icon: ShoppingCart },
-    { name: 'Wishlist', href: '/wishlist', icon: Heart },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "My Orders", href: "/my-orders", icon: ShoppingBag },
+    { name: "My Courses", href: "/my-courses", icon: BookOpen },
+    { name: "Cart", href: "/cart", icon: ShoppingCart },
+    { name: "Wishlist", href: "/wishlist", icon: Heart },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const handleLogout = () => {
@@ -46,7 +46,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* User Profile Summary */}
@@ -56,6 +56,8 @@ const Sidebar = ({ isOpen, onClose }) => {
               <img
                 src={user.avatar}
                 alt={user.fullName}
+                loading="lazy"
+                fetchpriority="low"
                 className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
@@ -64,7 +66,9 @@ const Sidebar = ({ isOpen, onClose }) => {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">{user?.fullName}</p>
+              <p className="font-medium text-gray-900 truncate">
+                {user?.fullName}
+              </p>
               <p className="text-sm text-gray-500 truncate">{user?.email}</p>
             </div>
           </div>
@@ -79,13 +83,17 @@ const Sidebar = ({ isOpen, onClose }) => {
               onClick={onClose}
               className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                 isActive(item.href)
-                  ? 'bg-purple-50 text-purple-600'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? "bg-purple-50 text-purple-600"
+                  : "text-gray-700 hover:bg-gray-50"
               }`}
             >
-              <item.icon className={`w-5 h-5 ${isActive(item.href) ? 'text-purple-600' : 'text-gray-400'}`} />
+              <item.icon
+                className={`w-5 h-5 ${isActive(item.href) ? "text-purple-600" : "text-gray-400"}`}
+              />
               <span className="ml-3 font-medium">{item.name}</span>
-              {isActive(item.href) && <ChevronRight className="w-4 h-4 ml-auto" />}
+              {isActive(item.href) && (
+                <ChevronRight className="w-4 h-4 ml-auto" />
+              )}
             </Link>
           ))}
         </nav>

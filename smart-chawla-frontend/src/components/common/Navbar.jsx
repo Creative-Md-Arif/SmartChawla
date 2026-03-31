@@ -44,15 +44,16 @@ const Navbar = () => {
   const searchRef = useRef(null);
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-const { items: cartItems = [] } = useSelector((state) => state.cart) || {};
-const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || {};
+  const { items: cartItems = [] } = useSelector((state) => state.cart) || {};
+  const { items: wishlistItems = [] } =
+    useSelector((state) => state.wishlist) || {};
 
   const cartItemCount = cartItems.length;
   const wishlistCount = wishlistItems.length;
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('recentSearches');
+    const saved = localStorage.getItem("recentSearches");
     if (saved) {
       setRecentSearches(JSON.parse(saved));
     }
@@ -61,35 +62,44 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
   // Save recent searches to localStorage
   const saveRecentSearch = (query) => {
     if (!query.trim()) return;
-    const newRecent = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
+    const newRecent = [
+      query,
+      ...recentSearches.filter((s) => s !== query),
+    ].slice(0, 5);
     setRecentSearches(newRecent);
-    localStorage.setItem('recentSearches', JSON.stringify(newRecent));
+    localStorage.setItem("recentSearches", JSON.stringify(newRecent));
   };
 
   // Remove from recent searches
   const removeRecentSearch = (e, query) => {
     e.stopPropagation();
-    const newRecent = recentSearches.filter(s => s !== query);
+    const newRecent = recentSearches.filter((s) => s !== query);
     setRecentSearches(newRecent);
-    localStorage.setItem('recentSearches', JSON.stringify(newRecent));
+    localStorage.setItem("recentSearches", JSON.stringify(newRecent));
   };
 
   // Clear all recent searches
   const clearAllRecent = () => {
     setRecentSearches([]);
-    localStorage.removeItem('recentSearches');
+    localStorage.removeItem("recentSearches");
   };
 
   // Fetch trending searches when search is focused but empty
   useEffect(() => {
-    if (isSearchFocused && searchQuery.length === 0 && trendingSearches.length === 0) {
+    if (
+      isSearchFocused &&
+      searchQuery.length === 0 &&
+      trendingSearches.length === 0
+    ) {
       fetchTrendingSearches();
     }
   }, [isSearchFocused, searchQuery]);
 
   const fetchTrendingSearches = async () => {
     try {
-      const response = await axiosInstance.get('/products/search-suggestions?type=trending&limit=5');
+      const response = await axiosInstance.get(
+        "/products/search-suggestions?type=trending&limit=5",
+      );
       if (response.data.success) {
         setTrendingSearches(response.data.trending || []);
       }
@@ -148,7 +158,7 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
     setIsLoading(true);
     try {
       const response = await axiosInstance.get(
-        `/products/search-suggestions?q=${encodeURIComponent(searchQuery)}&limit=5&type=autocomplete`
+        `/products/search-suggestions?q=${encodeURIComponent(searchQuery)}&limit=5&type=autocomplete`,
       );
       if (response.data.success) {
         setSearchSuggestions(response.data.products || []);
@@ -207,7 +217,8 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
   ];
 
   // Check if we should show empty state (recent + trending)
-  const showEmptyState = isSearchFocused && searchQuery.length < 2 && !isLoading;
+  const showEmptyState =
+    isSearchFocused && searchQuery.length < 2 && !isLoading;
 
   return (
     <nav
@@ -301,7 +312,7 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                       : "text-neutral-400 group-hover:text-primary-400"
                   }`}
                 />
-                
+
                 {/* Loading spinner */}
                 {isLoading && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -314,7 +325,6 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
             {/* Enhanced Search Dropdown */}
             {showSuggestions && (
               <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-premium border border-primary-100 overflow-hidden animate-slide-up max-h-[480px] overflow-y-auto">
-                
                 {/* Search Results */}
                 {searchQuery.length >= 2 && (
                   <>
@@ -323,7 +333,7 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         সাজেশন
                       </p>
                       {searchSuggestions.length > 0 && (
-                        <Link 
+                        <Link
                           to={`/shop?search=${encodeURIComponent(searchQuery)}`}
                           onClick={() => {
                             saveRecentSearch(searchQuery);
@@ -336,11 +346,13 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         </Link>
                       )}
                     </div>
-                    
+
                     {searchSuggestions.length === 0 && !isLoading ? (
                       <div className="px-4 py-8 text-center">
-                        <p className="text-neutral-500 font-bangla text-sm">কোনো পণ্য পাওয়া যায়নি</p>
-                        <Link 
+                        <p className="text-neutral-500 font-bangla text-sm">
+                          কোনো পণ্য পাওয়া যায়নি
+                        </p>
+                        <Link
                           to={`/shop?search=${encodeURIComponent(searchQuery)}`}
                           className="text-primary-600 text-sm mt-2 inline-block hover:underline"
                         >
@@ -357,8 +369,13 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         >
                           <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 shadow-soft group-hover:shadow-md transition-shadow duration-200 flex-shrink-0">
                             <img
-                              src={product.images?.[0]?.url || '/placeholder-product.png'}
+                              src={
+                                product.images?.[0]?.url ||
+                                "/placeholder-product.png"
+                              }
                               alt={product.name?.bn || product.name}
+                              loading="lazy"
+                              fetchpriority="high"
                               className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
                             />
                           </div>
@@ -393,7 +410,7 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                             <Clock className="w-3 h-3" />
                             সাম্প্রতিক সার্চ
                           </p>
-                          <button 
+                          <button
                             onClick={clearAllRecent}
                             className="text-xs text-red-500 hover:text-red-600"
                           >
@@ -408,9 +425,11 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                           >
                             <div className="flex items-center gap-3">
                               <Clock className="w-4 h-4 text-neutral-400" />
-                              <span className="text-sm text-neutral-700 font-bangla">{query}</span>
+                              <span className="text-sm text-neutral-700 font-bangla">
+                                {query}
+                              </span>
                             </div>
-                            <button 
+                            <button
                               onClick={(e) => removeRecentSearch(e, query)}
                               className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded-full transition-all"
                             >
@@ -436,14 +455,18 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                             onClick={() => handleTrendingClick(item.query)}
                             className="flex items-center px-4 py-2.5 hover:bg-primary-50 transition-colors cursor-pointer"
                           >
-                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold mr-3 ${
-                              index < 3 
-                                ? "bg-primary-100 text-primary-600" 
-                                : "bg-neutral-100 text-neutral-600"
-                            }`}>
+                            <span
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold mr-3 ${
+                                index < 3
+                                  ? "bg-primary-100 text-primary-600"
+                                  : "bg-neutral-100 text-neutral-600"
+                              }`}
+                            >
                               {index + 1}
                             </span>
-                            <span className="text-sm text-neutral-700 font-bangla flex-1">{item.query}</span>
+                            <span className="text-sm text-neutral-700 font-bangla flex-1">
+                              {item.query}
+                            </span>
                             <span className="text-xs text-neutral-400">
                               {item.count} বার
                             </span>
@@ -505,6 +528,8 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                       <img
                         src={user.avatar}
                         alt={user.fullName}
+                        loading="lazy"
+                        fetchpriority="low"
                         className="w-9 h-9 rounded-xl object-cover ring-2 ring-white shadow-md"
                       />
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary-500 border-2 border-white rounded-full" />
@@ -531,6 +556,8 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                           <img
                             src={user.avatar}
                             alt={user.fullName}
+                            loading="lazy"
+                            fetchpriority="low"
                             className="w-12 h-12 rounded-xl object-cover ring-2 ring-primary-200 shadow-md"
                           />
                         ) : (
@@ -557,7 +584,9 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center mr-3 group-hover:bg-primary-200 transition-colors">
                           <LayoutDashboard className="w-4 h-4 text-primary-600" />
                         </div>
-                        <span className="font-medium font-bangla">ড্যাশবোর্ড</span>
+                        <span className="font-medium font-bangla">
+                          ড্যাশবোর্ড
+                        </span>
                       </Link>
 
                       <Link
@@ -567,7 +596,9 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         <div className="w-8 h-8 rounded-lg bg-secondary-50 flex items-center justify-center mr-3 group-hover:bg-secondary-100 transition-colors">
                           <Package className="w-4 h-4 text-secondary-600" />
                         </div>
-                        <span className="font-medium font-bangla">আমার অর্ডার</span>
+                        <span className="font-medium font-bangla">
+                          আমার অর্ডার
+                        </span>
                       </Link>
 
                       <Link
@@ -577,7 +608,9 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mr-3 group-hover:bg-amber-100 transition-colors">
                           <BookOpen className="w-4 h-4 text-amber-600" />
                         </div>
-                        <span className="font-medium font-bangla">আমার কোর্স</span>
+                        <span className="font-medium font-bangla">
+                          আমার কোর্স
+                        </span>
                       </Link>
 
                       <Link
@@ -588,7 +621,9 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                           <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center mr-3 group-hover:bg-rose-100 transition-colors">
                             <Heart className="w-4 h-4 text-rose-500" />
                           </div>
-                          <span className="font-medium font-bangla">উইশলিস্ট</span>
+                          <span className="font-medium font-bangla">
+                            উইশলিস্ট
+                          </span>
                         </div>
                         {wishlistCount > 0 && (
                           <span className="px-2 py-0.5 text-xs font-medium bg-rose-100 text-rose-600 rounded-full">
@@ -605,7 +640,9 @@ const { items: wishlistItems = [] } = useSelector((state) => state.wishlist) || 
                           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center mr-3 group-hover:bg-primary-200 transition-colors">
                             <LayoutDashboard className="w-4 h-4 text-primary-600" />
                           </div>
-                          <span className="font-medium font-bangla">এডমিন প্যানেল</span>
+                          <span className="font-medium font-bangla">
+                            এডমিন প্যানেল
+                          </span>
                           <Zap className="w-3 h-3 ml-auto text-primary-400" />
                         </Link>
                       )}

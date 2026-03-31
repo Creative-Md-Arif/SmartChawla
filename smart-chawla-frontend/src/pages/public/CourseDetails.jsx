@@ -24,7 +24,7 @@ import { selectIsEnrolled, enrollCourse } from "../../redux/slices/enrollSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
 import toast from "react-hot-toast";
 
-const CourseDetails = ({ preview = false }) => {
+const CourseDetails = ({ preview = false, index = 0 }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -457,6 +457,8 @@ const CourseDetails = ({ preview = false }) => {
                   src={course.instructor?.avatar || <User />}
                   alt={course.instructor?.name}
                   className="w-12 h-12 rounded-full object-cover"
+                  loading="lazy"
+                  fetchpriority="low"
                 />
                 <div>
                   <p className="font-medium">{course.instructor?.name}</p>
@@ -479,6 +481,7 @@ const CourseDetails = ({ preview = false }) => {
                 <img
                   src={course.thumbnail?.url}
                   alt={course.title}
+                  fetchpriority={index === 0 ? "high" : "auto"}
                   className="w-full aspect-video object-cover"
                 />
               )}
@@ -716,6 +719,8 @@ const CourseDetails = ({ preview = false }) => {
                   src={course.instructor?.avatar || "/placeholder-avatar.jpg"}
                   alt={course.instructor?.name}
                   className="w-24 h-24 rounded-full object-cover"
+                  loading="lazy"
+                  fetchpriority="low"
                 />
                 <div>
                   <h3 className="text-xl font-bold">

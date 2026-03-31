@@ -1,68 +1,74 @@
 // pages/user/Wishlist.jsx
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Heart, 
-  ShoppingCart, 
-  Trash2, 
-  ArrowRight, 
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Heart,
+  ShoppingCart,
+  Trash2,
+  ArrowRight,
   ShoppingBag,
   BookOpen,
   AlertCircle,
-  X
-} from 'lucide-react';
-import { 
-  removeFromWishlist, 
+  X,
+} from "lucide-react";
+import {
+  removeFromWishlist,
   moveToCart,
   clearWishlist,
   selectWishlistItems,
-  selectWishlistCount
-} from '../../redux/slices/wishlistSlice';
-import { addToCart } from '../../redux/slices/cartSlice';
-import { formatPrice } from '../../utils/formatters';
+  selectWishlistCount,
+} from "../../redux/slices/wishlistSlice";
+import { addToCart } from "../../redux/slices/cartSlice";
+import { formatPrice } from "../../utils/formatters";
 
 const Wishlist = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Only Redux state - no backend sync
   const items = useSelector(selectWishlistItems);
   const itemCount = useSelector(selectWishlistCount);
-  
+
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [removingItem, setRemovingItem] = useState(null);
 
   const handleRemove = (item) => {
     setRemovingItem(`${item.itemType}-${item.itemId || item._id}`);
-    
+
     // Small delay for visual feedback
     setTimeout(() => {
-      dispatch(removeFromWishlist({ 
-        itemId: item.itemId || item._id, 
-        itemType: item.itemType 
-      }));
+      dispatch(
+        removeFromWishlist({
+          itemId: item.itemId || item._id,
+          itemType: item.itemType,
+        }),
+      );
       setRemovingItem(null);
     }, 200);
   };
 
   const handleMoveToCart = (item) => {
     // Add to cart
-    dispatch(addToCart({
-      itemType: item.itemType,
-      itemId: item.itemId || item._id,
-      name: item.name,
-      price: item.price,
-      image: item.image,
-      quantity: 1,
-    }));
-    
+    dispatch(
+      addToCart({
+        itemType: item.itemType,
+        itemId: item.itemId || item._id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        quantity: 1,
+      }),
+    );
+
     // Remove from wishlist
-    dispatch(moveToCart({ 
-      itemId: item.itemId || item._id, 
-      itemType: item.itemType 
-    }));
-    
+    dispatch(
+      moveToCart({
+        itemId: item.itemId || item._id,
+        itemType: item.itemType,
+      }),
+    );
+
     // Optional: Show toast notification
     showNotification(`${item.name} কার্টে যোগ করা হয়েছে!`);
   };
@@ -79,7 +85,7 @@ const Wishlist = () => {
   };
 
   const getItemIcon = (itemType) => {
-    return itemType === 'course' ? BookOpen : ShoppingBag;
+    return itemType === "course" ? BookOpen : ShoppingBag;
   };
 
   const getItemLink = (item) => {
@@ -129,14 +135,12 @@ const Wishlist = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              আমার Wishlist
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">আমার Wishlist</h1>
             <p className="text-gray-600 mt-1">
               {itemCount} টি আইটেম সেভ করা আছে
             </p>
           </div>
-          
+
           <button
             onClick={() => setShowClearConfirm(true)}
             className="flex items-center px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors mt-4 sm:mt-0"
@@ -181,38 +185,42 @@ const Wishlist = () => {
             const ItemIcon = getItemIcon(item.itemType);
             const itemKey = `${item.itemType}-${item.itemId || item._id}`;
             const isRemoving = removingItem === itemKey;
-            
+
             return (
               <div
                 key={itemKey}
                 className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-md transition-all duration-200 ${
-                  isRemoving ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+                  isRemoving ? "opacity-50 scale-95" : "opacity-100 scale-100"
                 }`}
               >
                 {/* Image */}
-                <Link 
+                <Link
                   to={getItemLink(item)}
                   className="block relative aspect-video overflow-hidden bg-gray-100"
                 >
                   <img
-                    src={item.image || '/placeholder.jpg'}
+                    src={item.image || "/placeholder.jpg"}
                     alt={item.name}
+                    loading="lazy"
+                    fetchpriority="high"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      e.target.src = '/placeholder.jpg';
+                      e.target.src = "/placeholder.jpg";
                     }}
                   />
                   <div className="absolute top-3 left-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      item.itemType === 'course' 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : 'bg-green-100 text-green-700'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        item.itemType === "course"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
                       <ItemIcon className="w-3 h-3 mr-1" />
-                      {item.itemType === 'course' ? 'কোর্স' : 'প্রোডাক্ট'}
+                      {item.itemType === "course" ? "কোর্স" : "প্রোডাক্ট"}
                     </span>
                   </div>
-                  
+
                   {/* Quick remove button */}
                   <button
                     onClick={(e) => {
@@ -233,7 +241,7 @@ const Wishlist = () => {
                       {item.name}
                     </h3>
                   </Link>
-                  
+
                   {item.description && (
                     <p className="text-sm text-gray-500 mb-3 line-clamp-2">
                       {item.description}
@@ -245,7 +253,7 @@ const Wishlist = () => {
                       {formatPrice(item.price)}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {new Date(item.addedAt).toLocaleDateString('bn-BD')}
+                      {new Date(item.addedAt).toLocaleDateString("bn-BD")}
                     </span>
                   </div>
 
@@ -257,7 +265,7 @@ const Wishlist = () => {
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       কার্টে যোগ করুন
                     </button>
-                    
+
                     <button
                       onClick={() => handleRemove(item)}
                       disabled={isRemoving}

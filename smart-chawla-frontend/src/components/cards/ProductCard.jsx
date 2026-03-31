@@ -7,10 +7,13 @@ import { formatPrice } from "../../utils/formatters";
 import WishlistButton from "../common/WishlistButton";
 import AddToCartButton from "../common/AddToCartButton";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product ,index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const { isAuthenticated } = useSelector((state) => state.auth);
+
+
+  const isPriority = index < 3;
 
   const discountPercentage = product.discountPrice
     ? Math.round(
@@ -64,6 +67,8 @@ const ProductCard = ({ product }) => {
           <img
             src={product.images?.[0]?.url || "/placeholder-product.jpg"}
             alt={`${product?.name} - Smart Chawla`}
+            loading={isPriority ? "eager" : "lazy"}
+            fetchpriority={isPriority ? "high" : "auto"}
             onLoad={() => setIsImageLoaded(true)}
             className={`
       w-full h-full object-cover transition-all duration-700 ease-out

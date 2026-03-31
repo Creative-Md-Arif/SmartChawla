@@ -1,19 +1,19 @@
-import { useState, useRef } from 'react';
-import { Upload, X, File, Image as ImageIcon, Check } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Upload, X, File, Image as ImageIcon, Check } from "lucide-react";
 
 const FileUploadButton = ({
   onFileSelect,
-  accept = 'image/*',
+  accept = "image/*",
   maxSize = 5 * 1024 * 1024, // 5MB
   multiple = false,
-  label = 'Upload File',
-  helperText = 'Drag & drop or click to upload',
+  label = "Upload File",
+  helperText = "Drag & drop or click to upload",
   preview = true,
-  className = '',
+  className = "",
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const inputRef = useRef(null);
 
   const validateFile = (file) => {
@@ -21,13 +21,13 @@ const FileUploadButton = ({
       return `File size must be less than ${(maxSize / 1024 / 1024).toFixed(1)}MB`;
     }
 
-    const acceptedTypes = accept.split(',').map((t) => t.trim());
+    const acceptedTypes = accept.split(",").map((t) => t.trim());
     const fileType = file.type;
-    const fileExtension = `.${file.name.split('.').pop().toLowerCase()}`;
+    const fileExtension = `.${file.name.split(".").pop().toLowerCase()}`;
 
     const isAccepted = acceptedTypes.some((type) => {
-      if (type.includes('*')) {
-        return fileType.startsWith(type.replace('/*', ''));
+      if (type.includes("*")) {
+        return fileType.startsWith(type.replace("/*", ""));
       }
       return type === fileType || type === fileExtension;
     });
@@ -40,7 +40,7 @@ const FileUploadButton = ({
   };
 
   const handleFiles = (files) => {
-    setError('');
+    setError("");
     const newFiles = [];
 
     Array.from(files).forEach((file) => {
@@ -53,7 +53,9 @@ const FileUploadButton = ({
       const fileWithPreview = {
         file,
         id: Math.random().toString(36).substring(7),
-        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+        preview: file.type.startsWith("image/")
+          ? URL.createObjectURL(file)
+          : null,
         name: file.name,
         size: file.size,
         type: file.type,
@@ -63,7 +65,9 @@ const FileUploadButton = ({
     });
 
     if (newFiles.length > 0) {
-      const updatedFiles = multiple ? [...selectedFiles, ...newFiles] : newFiles;
+      const updatedFiles = multiple
+        ? [...selectedFiles, ...newFiles]
+        : newFiles;
       setSelectedFiles(updatedFiles);
       onFileSelect?.(multiple ? updatedFiles : updatedFiles[0]);
     }
@@ -112,11 +116,12 @@ const FileUploadButton = ({
         className={`
           relative border-2 border-dashed rounded-lg p-6 cursor-pointer
           transition-all duration-200 text-center
-          ${isDragging
-            ? 'border-purple-500 bg-purple-50'
-            : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+          ${
+            isDragging
+              ? "border-purple-500 bg-purple-50"
+              : "border-gray-300 hover:border-purple-400 hover:bg-gray-50"
           }
-          ${error ? 'border-red-300 bg-red-50' : ''}
+          ${error ? "border-red-300 bg-red-50" : ""}
         `}
       >
         <input
@@ -129,11 +134,15 @@ const FileUploadButton = ({
         />
 
         <div className="flex flex-col items-center">
-          <div className={`
+          <div
+            className={`
             w-12 h-12 rounded-full flex items-center justify-center mb-3
-            ${isDragging ? 'bg-purple-100' : 'bg-gray-100'}
-          `}>
-            <Upload className={`w-6 h-6 ${isDragging ? 'text-purple-600' : 'text-gray-500'}`} />
+            ${isDragging ? "bg-purple-100" : "bg-gray-100"}
+          `}
+          >
+            <Upload
+              className={`w-6 h-6 ${isDragging ? "text-purple-600" : "text-gray-500"}`}
+            />
           </div>
           <p className="font-medium text-gray-700">{label}</p>
           <p className="text-sm text-gray-500 mt-1">{helperText}</p>
@@ -164,6 +173,8 @@ const FileUploadButton = ({
                 <img
                   src={file.preview}
                   alt={file.name}
+                  loading="lazy"
+                  fetchpriority="low"
                   className="w-12 h-12 object-cover rounded"
                 />
               ) : (
@@ -174,8 +185,12 @@ const FileUploadButton = ({
 
               {/* File Info */}
               <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {file.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatFileSize(file.size)}
+                </p>
               </div>
 
               {/* Success Icon */}

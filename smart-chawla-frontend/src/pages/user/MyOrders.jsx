@@ -507,6 +507,9 @@ const MyOrders = () => {
                               src={item.image || "/placeholder.jpg"}
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded-lg"
+                              loading="lazy"
+                              // এটি মেইন কন্টেন্ট নয়, তাই লোড প্রায়োরিটি কম রাখা হয়েছে
+                              fetchpriority="high"
                             />
                             <div className="ml-4 flex-1">
                               <p className="font-medium text-gray-900">

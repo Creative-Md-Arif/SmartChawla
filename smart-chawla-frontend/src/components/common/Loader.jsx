@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 // Spinner Loader
-export const Spinner = ({ size = 'md', className = '' }) => {
+export const Spinner = ({ size = "md", className = "" }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12',
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
+    xl: "w-12 h-12",
   };
 
   return (
@@ -33,10 +33,8 @@ export const PageLoader = () => {
 };
 
 // Skeleton Loader
-export const Skeleton = ({ className = '' }) => {
-  return (
-    <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
-  );
+export const Skeleton = ({ className = "" }) => {
+  return <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
 };
 
 // Card Skeleton
@@ -147,13 +145,13 @@ export const ButtonLoader = ({ children, loading, ...props }) => {
           <Spinner size="sm" />
         </span>
       )}
-      <span className={loading ? 'invisible' : ''}>{children}</span>
+      <span className={loading ? "invisible" : ""}>{children}</span>
     </button>
   );
 };
 
 // Image Loader with blur effect
-export const ImageLoader = ({ src, alt, className = '', ...props }) => {
+export const ImageLoader = ({ src, alt, className = "", ...props }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
@@ -164,8 +162,10 @@ export const ImageLoader = ({ src, alt, className = '', ...props }) => {
       <img
         src={src}
         alt={alt}
+        loading="lazy"
+        fetchpriority="low"
         className={`w-full h-full object-cover transition-opacity duration-300 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
+          isLoading ? "opacity-0" : "opacity-100"
         }`}
         onLoad={() => setIsLoading(false)}
         {...props}

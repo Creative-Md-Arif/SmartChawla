@@ -19,7 +19,7 @@ import {
   selectCourseProgress,
 } from "../../redux/slices/enrollSlice";
 
-const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
+const CourseCard = ({ course, enrolled = false, progress = 0,index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -96,7 +96,8 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
             src={course.thumbnail?.url || "/placeholder-course.jpg"}
             alt={`${course.title} - ${course.instructor?.name || "Smart Chawla"} - অনলাইন কোর্স`}
             onLoad={() => setIsImageLoaded(true)}
-            loading="lazy"
+            loading={index < 2 ? "eager" : "lazy"}
+            fetchpriority={index < 2 ? "high" : "low"}
             className={`
       w-full h-full object-cover transition-all duration-700 ease-out
       ${isHovered ? "scale-105 sm:scale-110" : "scale-100"}

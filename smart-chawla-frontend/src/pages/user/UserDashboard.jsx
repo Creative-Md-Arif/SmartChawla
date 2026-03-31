@@ -337,6 +337,8 @@ const UserDashboard = () => {
                 src={user.avatar}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                loading="lazy"
+                fetchpriority="low"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -542,6 +544,8 @@ const UserDashboard = () => {
                         src={avatarPreview}
                         alt="Preview"
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        fetchpriority="low"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -615,6 +619,8 @@ const UserDashboard = () => {
                     <img
                       src={user.avatar}
                       alt="Profile"
+                      loading="lazy"
+                      fetchpriority="low"
                       className="w-full h-full object-cover"
                     />
                   ) : (

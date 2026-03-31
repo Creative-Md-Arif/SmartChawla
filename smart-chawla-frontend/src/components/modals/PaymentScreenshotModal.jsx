@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { X, Check, XCircle, ZoomIn, ZoomOut, Download } from 'lucide-react';
-import { formatPrice, formatDate } from '../../utils/formatters';
+import { useState } from "react";
+import { X, Check, XCircle, ZoomIn, ZoomOut, Download } from "lucide-react";
+import { formatPrice, formatDate } from "../../utils/formatters";
 
 const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
   const [zoom, setZoom] = useState(1);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -60,7 +60,9 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
                 >
                   <ZoomOut className="w-5 h-5" />
                 </button>
-                <span className="text-white text-sm">{Math.round(zoom * 100)}%</span>
+                <span className="text-white text-sm">
+                  {Math.round(zoom * 100)}%
+                </span>
                 <button
                   onClick={handleZoomIn}
                   className="p-2 bg-gray-800 text-white rounded hover:bg-gray-700"
@@ -86,6 +88,8 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
                 <img
                   src={order.paymentScreenshot.url}
                   alt="Payment Screenshot"
+                  loading="lazy"
+                  fetchpriority="high"
                   className="max-w-full transition-transform duration-200"
                   style={{ transform: `scale(${zoom})` }}
                 />
@@ -145,7 +149,9 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
               {order.notes && (
                 <div>
                   <p className="text-sm text-gray-500">Customer Notes</p>
-                  <p className="text-sm bg-white p-2 rounded border">{order.notes}</p>
+                  <p className="text-sm bg-white p-2 rounded border">
+                    {order.notes}
+                  </p>
                 </div>
               )}
             </div>
@@ -153,7 +159,9 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
             {/* Status History */}
             {order.statusHistory?.length > 0 && (
               <div className="mt-6">
-                <h4 className="font-medium text-gray-900 mb-2">Status History</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Status History
+                </h4>
                 <div className="space-y-2">
                   {order.statusHistory.map((status, index) => (
                     <div key={index} className="text-sm">
@@ -195,7 +203,7 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
                   disabled={!rejectionReason.trim() || isProcessing}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                 >
-                  {isProcessing ? 'Processing...' : 'Confirm Reject'}
+                  {isProcessing ? "Processing..." : "Confirm Reject"}
                 </button>
               </div>
             </div>
@@ -215,7 +223,7 @@ const PaymentScreenshotModal = ({ order, onClose, onVerify, onReject }) => {
                 className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 <Check className="w-5 h-5 mr-2" />
-                {isProcessing ? 'Processing...' : 'Verify Payment'}
+                {isProcessing ? "Processing..." : "Verify Payment"}
               </button>
             </div>
           )}

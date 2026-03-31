@@ -1,19 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  ShoppingCart, Heart, Share2, Truck, Shield, RefreshCcw,
-  Star, ChevronRight, Minus, Plus, Check, Camera, X, Send
-} from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { Star, Check, Camera, X, Send } from "lucide-react";
+import { useSelector } from "react-redux";
 import axiosInstance from "../../utils/axiosInstance";
 import { formatPrice } from "../../utils/formatters";
 import { toast } from "react-hot-toast";
 import CategoryBreadcrumb from "../../components/category/CategoryBreadcrumb";
 import AddToCartButton from "../../components/common/AddToCartButton";
 
-const ProductDetails = () => {
+const ProductDetails = (index = 0) => {
   const { slug } = useParams();
-  const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const [product, setProduct] = useState(null);
@@ -113,7 +109,7 @@ const ProductDetails = () => {
     }
   };
 
-// 1. Handle Loading State First
+  // 1. Handle Loading State First
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -127,10 +123,14 @@ const ProductDetails = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
-          <p className="text-gray-600 mb-4">{error || 'The product you are looking for does not exist.'}</p>
-          <Link 
-            to="/shop" 
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {error || "The product you are looking for does not exist."}
+          </p>
+          <Link
+            to="/shop"
             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Continue Shopping
@@ -143,18 +143,17 @@ const ProductDetails = () => {
   // 3. NOW it is safe to declare cartItem because we guarantee `product` exists
   const cartItem = {
     itemType: "product",
-    itemId: product._id,
-    name: product.name,
-    price: product.discountPrice || product.price,
-    image: product.images?.[0]?.url,
-    stock: product.stock,
+    itemId: product?._id,
+    name: product?.name,
+    price: product?.discountPrice || product?.price,
+    image: product?.images?.[0]?.url,
+    stock: product?.stock,
   };
 
   // ... rest of your return logic (Breadcrumbs, UI, etc.)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* ব্রেডক্রাম্ব এখানে অ্যাড করা হয়েছে */}
       <CategoryBreadcrumb items={getBreadcrumbItems()} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
@@ -163,7 +162,9 @@ const ProductDetails = () => {
           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 border">
             <img
               src={product.images?.[selectedImage]?.url || "/placeholder.jpg"}
-              alt={product.name}
+              alt="Product"
+              loading="eager"
+              fetchpriority="high"
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           </div>
@@ -181,6 +182,8 @@ const ProductDetails = () => {
                 <img
                   src={img.url}
                   alt=""
+                  loading="lazy"
+                  fetchpriority="high"
                   className="w-full h-full object-cover"
                 />
               </button>
@@ -350,6 +353,8 @@ const ProductDetails = () => {
                             <img
                               key={idx}
                               src={img.url}
+                              loading="lazy"
+                              fetchpriority="low"
                               className="w-20 h-20 object-cover rounded-lg border"
                               alt="review"
                             />
@@ -407,6 +412,8 @@ const ProductDetails = () => {
                           <img
                             src={URL.createObjectURL(img)}
                             className="w-full h-full object-cover rounded-lg"
+                            loading="lazy"
+                            fetchpriority="low"
                             alt="preview"
                           />
                           <button
@@ -468,6 +475,8 @@ const ProductDetails = () => {
                     src={rel.images?.[0]?.url}
                     alt={rel.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    loading="lazy"
+                    fetchpriority="high"
                   />
                 </div>
                 <h3 className="font-medium text-gray-900 truncate">
