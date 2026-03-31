@@ -8,6 +8,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 
+
 import AppRoutes from './routes/AppRoutes';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
@@ -30,7 +31,7 @@ const RootLayout = () => {
   );
 };
 
-// ২. রাউটার কনফিগারেশন (BrowserRouter এর বদলে এটাই লেটেস্ট নিয়ম)
+
 const router = createBrowserRouter([
   {
     path: "/*",
@@ -48,13 +49,12 @@ function App() {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  // আপনার এনরোলমেন্ট সিঙ্ক লজিক (সম্পূর্ণ অপরিবর্তিত)
   useEffect(() => {
     if (isAuthenticated && user) {
       const fetchEnrollments = async () => {
         try {
           const response = await axiosInstance.get('/courses/my/enrolled');
-          const enrollments = response.data.courses.map((e) => ({
+          const enrollments = response.data?.courses?.map((e) => ({
             courseId: e.course?._id || e.courseId,
             title: e.course?.title,
             price: e.course?.price,

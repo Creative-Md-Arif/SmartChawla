@@ -20,11 +20,11 @@ const ProductCard = ({ product }) => {
 
   const cartItem = {
     itemType: "product",
-    itemId: product._id,
-    name: product.name,
-    price: product.discountPrice || product.price,
-    image: product.images?.[0]?.url,
-    stock: product.stock,
+    itemId: product?._id,
+    name: product?.name,
+    price: product?.discountPrice || product?.price || 0,
+    image: product?.images?.[0]?.url || "/placeholder-product.jpg",
+    stock: product?.stock || 0,
   };
 
   // Determine badge color based on discount
@@ -63,7 +63,7 @@ const ProductCard = ({ product }) => {
           {/* Product Image - Enhanced transition and fit */}
           <img
             src={product.images?.[0]?.url || "/placeholder-product.jpg"}
-            alt={product.name}
+            alt={`${product?.name} - Smart Chawla`}
             onLoad={() => setIsImageLoaded(true)}
             className={`
       w-full h-full object-cover transition-all duration-700 ease-out
@@ -156,7 +156,7 @@ const ProductCard = ({ product }) => {
           <Link
             to={`/product/${product.slug}`}
             className="w-7 h-7 sm:w-10 sm:h-10 bg-white rounded-full shadow-xl flex items-center justify-center text-neutral-700 hover:bg-purple-600 hover:text-white transition-all duration-300 transform hover:scale-110 active:scale-90 delay-150 border border-neutral-100"
-            title="দ্রুত দেখুন"
+            title={`${product?.name} এর বিস্তারিত দেখুন`}
           >
             <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
           </Link>
@@ -171,7 +171,7 @@ const ProductCard = ({ product }) => {
           <span className="text-[10px] sm:text-xs font-bold text-indigo-600 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full truncate max-w-[90px] sm:max-w-none">
             {typeof product.category?.name === "object"
               ? product.category?.name?.bn || product.category?.name?.en
-              : product.category?.name}
+              : product.category?.name || "General"}
           </span>
 
           {/* Trust Badge - Compact alignment */}
@@ -207,7 +207,7 @@ const ProductCard = ({ product }) => {
             ))}
           </div>
           <span className="text-[10px] sm:text-[11px] text-neutral-400 font-medium">
-            ({product.ratings?.length || 0})
+            ({product?.ratings?.length || 0})
           </span>
         </div>
 

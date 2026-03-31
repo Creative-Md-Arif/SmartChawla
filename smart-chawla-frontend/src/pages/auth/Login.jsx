@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { loginUser } from "../../redux/slices/authSlice";
+import { Helmet } from "react-helmet";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -136,12 +137,21 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Helmet>
+        <title>Login | Smart Chawla</title>
+        <meta
+          name="description"
+          content="Sign in to your Smart Chawla account to manage your orders and courses."
+        />
+        <meta property="og:title" content="Login | Smart Chawla" />
+        <link rel="canonical" href="https://smart-chawla.vercel.app/login" />
+      </Helmet>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-6 w-6 text-purple-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
           <p className="mt-2 text-sm text-gray-600">
             Sign in to your Smart Chawla account
           </p>
@@ -212,7 +222,7 @@ const Login = () => {
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               </div>
               <input
                 id="password"
@@ -233,6 +243,16 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  loading
+                    ? "Authenticating your account"
+                    : "Sign in to your Smart Chawla account"
+                }
+                title={
+                  !isFormValid
+                    ? "Please fill in the email and password correctly"
+                    : "Click to Sign In"
+                }
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
               >
                 {showPassword ? (

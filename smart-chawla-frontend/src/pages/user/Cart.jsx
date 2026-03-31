@@ -55,7 +55,6 @@ const Cart = () => {
           {items.map((item) => (
             <div
               key={`${item.itemType}-${item.itemId}`}
-              // flex-col (মোবাইলে নিচে নিচে) এবং sm:flex-row (বড় স্ক্রিনে পাশাপাশি) করা হয়েছে
               className="flex flex-col sm:flex-row items-center sm:items-center p-4 bg-white rounded-lg shadow-sm border border-gray-100 gap-4"
             >
               {/* ইমেজ সেকশন */}

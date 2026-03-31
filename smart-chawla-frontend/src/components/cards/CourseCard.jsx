@@ -79,7 +79,6 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
         className="relative block overflow-hidden"
       >
         <div className="aspect-video overflow-hidden bg-neutral-100 relative group rounded-t-xl sm:rounded-t-2xl">
-          {/* Skeleton Loader - SEO: Hidden from screen readers during loading */}
           {!isImageLoaded && (
             <div
               className="absolute inset-0 bg-neutral-200 animate-pulse z-10"
@@ -95,7 +94,7 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
           {/* Image - SEO: Dynamic Alt tags used correctly */}
           <img
             src={course.thumbnail?.url || "/placeholder-course.jpg"}
-            alt={`${course.title} - Online Course`}
+            alt={`${course.title} - ${course.instructor?.name || "Smart Chawla"} - অনলাইন কোর্স`}
             onLoad={() => setIsImageLoaded(true)}
             loading="lazy"
             className={`
@@ -239,7 +238,7 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
             </span>
           </div>
           <p className="text-[11px] sm:text-xs text-neutral-500 font-bold truncate">
-            {course.instructor?.name}
+            {course.instructor?.name || "Instructor"}
           </p>
         </div>
 
@@ -295,7 +294,10 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
 
         {/* Price & CTA - Ultra Compact */}
         {!isCourseEnrolled && (
-          <div className="flex items-center justify-between mt-3">
+          <div
+            className="flex items-center justify-between mt-3"
+            aria-label="Course Price"
+          >
             <div className="flex flex-col">
               {course.discountPrice ? (
                 <>
@@ -307,7 +309,7 @@ const CourseCard = ({ course, enrolled = false, progress = 0 }) => {
                   </span>
                 </>
               ) : (
-                <span className="text-[16px] sm:text-xl font-black text-purple-600 font-bangla leading-none">
+                <span className="text-[16px] sm:text-xl font-black text-purple-600 font-bangla leading-none ">
                   {formatPrice(course.price)}
                 </span>
               )}

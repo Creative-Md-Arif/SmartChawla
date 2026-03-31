@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Helmet } from "react-helmet";
 import {
   registerUser,
   clearError,
@@ -99,11 +100,30 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      {/* SEO Meta Tags */}
+      <Helmet>
+        <title>Create Account | Smart Chawla</title>
+        <meta
+          name="description"
+          content="Join Smart Chawla today. Create your account to access exclusive products, courses, and seamless shopping experience."
+        />
+        <meta
+          name="keywords"
+          content="Smart Chawla, Register, Sign Up, Create Account, E-commerce Bangladesh"
+        />
+        <link rel="canonical" href="https://smart-chawla.vercel.app/register" />
+        <meta property="og:title" content="Create Account | Smart Chawla" />
+        <meta
+          property="og:description"
+          content="Join Smart Chawla today. Create your account to access exclusive products and courses."
+        />
+      </Helmet>
+
       <div className="max-w-md w-full space-y-8">
         <div className="text-center px-2">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
             Create Account
-          </h2>
+          </h1>
           <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-gray-600">
             Join Smart Chawla today
           </p>
@@ -174,10 +194,10 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              // ৩২০px স্ক্রিনের জন্য আইকনের টপ পজিশন নিখুঁত করা হয়েছে
-              className="absolute right-3 top-[32px] sm:top-[34px] text-gray-400 hover:text-gray-600"
+             className="absolute right-4 bottom-[12px] sm:bottom-[14px] text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPassword ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}
             </button>
           </div>
 
@@ -197,9 +217,14 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-[32px] sm:top-[34px] text-gray-400 hover:text-gray-600"
+                className="absolute right-4 bottom-[12px] sm:bottom-[14px] text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              aria-label={
+                showConfirmPassword
+                  ? "Hide confirm password"
+                  : "Show confirm password"
+              }
             >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+             {showPassword ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}
             </button>
           </div>
 
@@ -233,6 +258,16 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading || !agreed}
+            aria-label={
+              loading
+                ? "Creating your account"
+                : "Create your Smart Chawla account"
+            }
+            title={
+              !agreed
+                ? "Please agree to the terms and conditions"
+                : "Create Account"
+            }
             className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
           >
             {loading ? (

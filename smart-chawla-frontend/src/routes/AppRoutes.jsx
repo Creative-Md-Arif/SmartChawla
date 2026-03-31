@@ -1,9 +1,9 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
 import { PageLoader } from "../components/common/Loader";
-import ManageOrders from "../pages/admin/ManageOrders";
+import { Helmet } from "react-helmet";
 
 // Public Pages
 const Home = lazy(() => import("../pages/public/Home"));
@@ -39,10 +39,20 @@ const ManageCategories = lazy(() => import("../pages/admin/ManageCategories"));
 const ManageBanners = lazy(() => import("../pages/admin/ManageBanners"));
 const ManageCoupons = lazy(() => import("../pages/admin/ManageCoupons"));
 const UserList = lazy(() => import("../pages/admin/UserList"));
+const ManageOrders = lazy(() => import("../pages/admin/ManageOrders"));
 
 const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoader />}>
+      <Helmet>
+        <title>Smart Chawla | Best E-commerce & Courses in BD</title>
+        <meta
+          name="description"
+          content="Shop exclusive fashion products and premium Tea courses at Smart Chawla."
+        />
+        <link rel="canonical" href="https://smart-chawla.vercel.app" />
+      </Helmet>
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
@@ -92,7 +102,20 @@ const AppRoutes = () => {
         {/* 404 */}
         <Route
           path="*"
-          element={<div className="text-center py-20">Page Not Found</div>}
+          element={
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+              <h1 className="text-4xl font-bold text-gray-800">404</h1>
+              <p className="text-gray-500 mt-2">
+                Oops! The page you are looking for doesn't exist.
+              </p>
+              <Link
+                to="/"
+                className="mt-6 px-6 py-2.5 bg-purple-600 text-white font-bold rounded-xl shadow-lg hover:bg-purple-700 active:scale-95 transition-all"
+              >
+                Back to Home
+              </Link>
+            </div>
+          }
         />
       </Routes>
     </Suspense>
