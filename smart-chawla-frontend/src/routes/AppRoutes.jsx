@@ -5,41 +5,54 @@ import AdminRoute from "./AdminRoute";
 import { PageLoader } from "../components/common/Loader";
 import { Helmet } from "react-helmet";
 
+const lazyWithRetry = (componentImport) =>
+  lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      // যদি মডিউল লোড ফেইল হয় (যেমন ক্যাশ সমস্যা), তবে একবার অটোমেটিক রিলোড হবে
+      console.error("Module load failed, reloading...", error);
+      window.location.reload();
+      return { default: () => null };
+    }
+  });
+
+
 // Public Pages
-const Home = lazy(() => import("../pages/public/Home"));
-const Shop = lazy(() => import("../pages/public/Shop"));
-const CourseList = lazy(() => import("../pages/public/CourseList"));
-const ProductDetails = lazy(() => import("../pages/public/ProductDetails"));
-const CourseDetails = lazy(() => import("../pages/public/CourseDetails"));
-const CourseLearn = lazy(() => import("../pages/user/CourseLearn")); // নতুন
-const CategoryList = lazy(() => import("../pages/public/CategoryList"));
-const CategoryProducts = lazy(() => import("../pages/public/CategoryProducts"));
+const Home = lazyWithRetry(() => import("../pages/public/Home"));
+const Shop = lazyWithRetry(() => import("../pages/public/Shop"));
+const CourseList = lazyWithRetry(() => import("../pages/public/CourseList"));
+const ProductDetails = lazyWithRetry(() => import("../pages/public/ProductDetails"));
+const CourseDetails = lazyWithRetry(() => import("../pages/public/CourseDetails"));
+const CourseLearn = lazyWithRetry(() => import("../pages/user/CourseLearn")); // নতুন
+const CategoryList = lazyWithRetry(() => import("../pages/public/CategoryList"));
+const CategoryProducts = lazyWithRetry(() => import("../pages/public/CategoryProducts"));
 
 // Auth Pages
-const Register = lazy(() => import("../pages/auth/Register"));
-const OTPVerification = lazy(() => import("../pages/auth/OTPVerification"));
-const Login = lazy(() => import("../pages/auth/Login"));
-const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
-const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
+const Register = lazyWithRetry(() => import("../pages/auth/Register"));
+const OTPVerification = lazyWithRetry(() => import("../pages/auth/OTPVerification"));
+const Login = lazyWithRetry(() => import("../pages/auth/Login"));
+const ForgotPassword = lazyWithRetry(() => import("../pages/auth/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("../pages/auth/ResetPassword"));
 
 // User Pages
-const UserDashboard = lazy(() => import("../pages/user/UserDashboard"));
-const MyOrders = lazy(() => import("../pages/user/MyOrders"));
-const MyCourses = lazy(() => import("../pages/user/MyCourses"));
-const Cart = lazy(() => import("../pages/user/Cart"));
-const Checkout = lazy(() => import("../pages/user/Checkout"));
-const Wishlist = lazy(() => import("../pages/user/Wishlist"));
+const UserDashboard = lazyWithRetry(() => import("../pages/user/UserDashboard"));
+const MyOrders = lazyWithRetry(() => import("../pages/user/MyOrders"));
+const MyCourses = lazyWithRetry(() => import("../pages/user/MyCourses"));
+const Cart = lazyWithRetry(() => import("../pages/user/Cart"));
+const Checkout = lazyWithRetry(() => import("../pages/user/Checkout"));
+const Wishlist = lazyWithRetry(() => import("../pages/user/Wishlist"));
 
 // Admin Pages
-const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard"));
-const ManageProducts = lazy(() => import("../pages/admin/ManageProducts"));
-const ManageCourses = lazy(() => import("../pages/admin/ManageCourses"));
-const VerifyPayments = lazy(() => import("../pages/admin/VerifyPayments"));
-const ManageCategories = lazy(() => import("../pages/admin/ManageCategories"));
-const ManageBanners = lazy(() => import("../pages/admin/ManageBanners"));
-const ManageCoupons = lazy(() => import("../pages/admin/ManageCoupons"));
-const UserList = lazy(() => import("../pages/admin/UserList"));
-const ManageOrders = lazy(() => import("../pages/admin/ManageOrders"));
+const AdminDashboard = lazyWithRetry(() => import("../pages/admin/AdminDashboard"));
+const ManageProducts = lazyWithRetry(() => import("../pages/admin/ManageProducts"));
+const ManageCourses = lazyWithRetry(() => import("../pages/admin/ManageCourses"));
+const VerifyPayments = lazyWithRetry(() => import("../pages/admin/VerifyPayments"));
+const ManageCategories = lazyWithRetry(() => import("../pages/admin/ManageCategories"));
+const ManageBanners = lazyWithRetry(() => import("../pages/admin/ManageBanners"));
+const ManageCoupons = lazyWithRetry(() => import("../pages/admin/ManageCoupons"));
+const UserList = lazyWithRetry(() => import("../pages/admin/UserList"));
+const ManageOrders = lazyWithRetry(() => import("../pages/admin/ManageOrders"));
 
 const AppRoutes = () => {
   return (
