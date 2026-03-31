@@ -24,43 +24,15 @@ const Home = () => {
   const { categories } = useSelector((state) => state.category);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [popularCourses, setPopularCourses] = useState([]);
-  const [activePromotions, setActivePromotions] = useState([]);
-  const [countdown, setCountdown] = useState({});
 
   // Loading states
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [isCoursesLoading, setIsCoursesLoading] = useState(true);
-  const [isPromotionsLoading, setIsPromotionsLoading] = useState(true);
 
   useEffect(() => {
     dispatch(fetchCategories());
     fetchFeaturedData();
-    fetchActivePromotions();
   }, [dispatch]);
-
-  // Countdown timer for promotions
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const newCountdown = {};
-      activePromotions.forEach((promo) => {
-        if (promo.validUntil) {
-          const diff = new Date(promo.validUntil) - new Date();
-          if (diff > 0) {
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor(
-              (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-            );
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            newCountdown[promo._id] = { days, hours, minutes, seconds };
-          }
-        }
-      });
-      setCountdown(newCountdown);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [activePromotions]);
 
   const fetchFeaturedData = async () => {
     try {
@@ -75,24 +47,6 @@ const Home = () => {
     } finally {
       setIsProductsLoading(false);
       setIsCoursesLoading(false);
-    }
-  };
-
-  const fetchActivePromotions = async () => {
-    try {
-      const response = await axiosInstance.get("/coupons", {
-        params: { status: "active", limit: 3 },
-      });
-
-      const promotions = (response.data.coupons || [])
-        .filter((coupon) => coupon.autoApply || coupon.priority >= 5)
-        .slice(0, 2);
-
-      setActivePromotions(promotions);
-    } catch (error) {
-      console.error("Error fetching promotions:", error);
-    } finally {
-      setIsPromotionsLoading(false);
     }
   };
 
@@ -114,40 +68,6 @@ const Home = () => {
     },
     { icon: Star, title: "Quality Products", description: "Verified sellers" },
   ];
-
-  const CountdownDisplay = ({ time }) => {
-    if (!time) return null;
-    return (
-      <div className="flex gap-2 text-center">
-        {time.days > 0 && (
-          <div className="bg-white/20 rounded p-2 min-w-[50px]">
-            <div className="text-xl font-bold">
-              {String(time.days).padStart(2, "0")}
-            </div>
-            <div className="text-xs">Days</div>
-          </div>
-        )}
-        <div className="bg-white/20 rounded p-2 min-w-[50px]">
-          <div className="text-xl font-bold">
-            {String(time.hours).padStart(2, "0")}
-          </div>
-          <div className="text-xs">Hrs</div>
-        </div>
-        <div className="bg-white/20 rounded p-2 min-w-[50px]">
-          <div className="text-xl font-bold">
-            {String(time.minutes).padStart(2, "0")}
-          </div>
-          <div className="text-xs">Min</div>
-        </div>
-        <div className="bg-white/20 rounded p-2 min-w-[50px]">
-          <div className="text-xl font-bold">
-            {String(time.seconds).padStart(2, "0")}
-          </div>
-          <div className="text-xs">Sec</div>
-        </div>
-      </div>
-    );
-  };
 
   // 🎯 EYE-CATCHING SKELETON COMPONENTS
 
@@ -199,29 +119,6 @@ const Home = () => {
     </div>
   );
 
-  const PromoBannerSkeleton = () => (
-    <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse">
-      <div className={`absolute inset-0 ${shimmerClass} opacity-30`} />
-      <div className="relative z-10 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className={`w-5 h-5 ${shimmerClass} rounded`} />
-          <div className={`h-6 ${shimmerClass} rounded-full w-32`} />
-        </div>
-        <div className={`h-10 ${shimmerClass} rounded w-40`} />
-        <div className="flex items-center gap-2">
-          <div className={`h-4 ${shimmerClass} rounded w-16`} />
-          <div className={`h-8 ${shimmerClass} rounded-lg w-28`} />
-        </div>
-        <div className="flex gap-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className={`w-12 h-14 ${shimmerClass} rounded`} />
-          ))}
-        </div>
-        <div className={`h-10 ${shimmerClass} rounded-lg w-32 ml-auto`} />
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-12 pb-12">
       <style>{`
@@ -233,90 +130,6 @@ const Home = () => {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <HeroBanner />
-      </section>
-
-      {/* 🎯 PROMOTIONAL BANNERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {isPromotionsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <PromoBannerSkeleton />
-            <PromoBannerSkeleton />
-          </div>
-        ) : activePromotions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {activePromotions.map((promo, index) => (
-              <div
-                key={promo._id}
-                className={`relative overflow-hidden rounded-2xl p-6 md:p-8 ${
-                  index === 0
-                    ? "bg-gradient-to-br from-purple-600 via-purple-700 to-blue-800"
-                    : "bg-gradient-to-br from-orange-500 via-red-500 to-pink-600"
-                } text-white shadow-xl transform hover:scale-[1.02] transition-transform duration-300`}
-              >
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Tag className="w-5 h-5" />
-                        <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
-                          {promo.firstOrderOnly
-                            ? "First Order Special"
-                            : "Limited Time Offer"}
-                        </span>
-                      </div>
-                      <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                        {promo.discountType === "percentage"
-                          ? `${promo.discountValue}% OFF`
-                          : `৳${promo.discountValue} OFF`}
-                      </h3>
-                      <p className="text-white/90 text-lg mb-1">
-                        Use code:{" "}
-                        <code className="bg-white/20 px-3 py-1 rounded-lg font-mono font-bold text-yellow-300">
-                          {promo.code}
-                        </code>
-                      </p>
-                      {promo.minPurchase > 0 && (
-                        <p className="text-sm text-white/80">
-                          On orders above ৳{promo.minPurchase}
-                        </p>
-                      )}
-                    </div>
-                    <div className="hidden md:block">
-                      <Percent className="w-16 h-16 text-white/20" />
-                    </div>
-                  </div>
-                  {promo.validUntil && countdown[promo._id] && (
-                    <div className="mb-4">
-                      <p className="text-sm text-white/80 mb-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        Offer ends in:
-                      </p>
-                      <CountdownDisplay time={countdown[promo._id]} />
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-                    <p className="text-sm text-white/80">
-                      {promo.usageLimit
-                        ? `${promo.usageLimit - (promo.usedCount || 0)} coupons left`
-                        : "Unlimited use"}
-                    </p>
-                    <Link
-                      to="/shop"
-                      className="inline-flex items-center px-6 py-2 bg-white text-purple-700 font-semibold rounded-lg hover:bg-yellow-300 hover:text-purple-800 transition-colors"
-                    >
-                      Shop Now
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
       </section>
 
       {/* Features */}
@@ -421,46 +234,49 @@ const Home = () => {
 
       {/* Middle Promo Banner */}
       <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-purple-700 to-fuchsia-700 shadow-2xl">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
-          <div className="relative z-10 px-4 py-10 sm:p-12 text-center">
-            <span className="inline-block px-3 py-1 mb-4 text-[10px] font-bold tracking-widest text-yellow-300 uppercase bg-white/10 border border-white/20 rounded-full">
-              Limited Time Offer
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-4 leading-[1.1] tracking-tight">
-              🎓 Special Student <br className="xs:hidden" /> Discount!
-            </h2>
-            <p className="max-w-md mx-auto mb-8 text-sm sm:text-lg text-indigo-100 leading-relaxed">
-              Enroll today and unlock{" "}
-              <span className="text-white font-bold underline decoration-yellow-400">
-                15% OFF
-              </span>{" "}
-              on all products.
-              <div className="mt-4 flex items-center justify-center gap-2 bg-black/20 w-fit mx-auto px-4 py-2 rounded-xl border border-white/10">
-                <span className="text-[10px] text-indigo-200 uppercase font-medium">
-                  Code:
-                </span>
-                <code className="text-yellow-300 font-mono font-bold text-base tracking-wider">
-                  STUDENT15
-                </code>
+        {/* Fixed height wrapper - CLS ফিক্স */}
+        <div className="h-[420px] sm:h-[380px]">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-purple-700 to-fuchsia-700 shadow-2xl h-full">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
+            <div className="relative z-10 px-4 py-10 sm:p-12 text-center h-full flex flex-col justify-center">
+              <span className="inline-block px-3 py-1 mb-4 text-[10px] font-bold tracking-widest text-yellow-300 uppercase bg-white/10 border border-white/20 rounded-full">
+                Limited Time Offer
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-4 leading-[1.1] tracking-tight">
+                🎓 Special Student <br className="xs:hidden" /> Discount!
+              </h2>
+              <p className="max-w-md mx-auto mb-8 text-sm sm:text-lg text-indigo-100 leading-relaxed">
+                Enroll today and unlock{" "}
+                <span className="text-white font-bold underline decoration-yellow-400">
+                  15% OFF
+                </span>{" "}
+                on all products.
+                <div className="mt-4 flex items-center justify-center gap-2 bg-black/20 w-fit mx-auto px-4 py-2 rounded-xl border border-white/10">
+                  <span className="text-[10px] text-indigo-200 uppercase font-medium">
+                    Code:
+                  </span>
+                  <code className="text-yellow-300 font-mono font-bold text-base tracking-wider">
+                    STUDENT15
+                  </code>
+                </div>
+              </p>
+              <div className="flex flex-col sm:flex-row items-stretch justify-center gap-3 max-w-[280px] sm:max-w-none mx-auto">
+                <Link
+                  to="/courses"
+                  className="group relative flex items-center justify-center px-6 py-3.5 bg-white text-indigo-700 font-bold rounded-xl transition-all hover:bg-yellow-300 hover:text-indigo-900 shadow-xl active:scale-95 overflow-hidden"
+                >
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  <span>Browse Courses</span>
+                </Link>
+                <Link
+                  to="/shop"
+                  className="flex items-center justify-center px-6 py-3.5 border-2 border-white/30 bg-white/5 text-white font-bold rounded-xl backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
+                >
+                  <ShoppingBag className="w-5 h-5 mr-2" />
+                  <span>Shop Products</span>
+                </Link>
               </div>
-            </p>
-            <div className="flex flex-col sm:flex-row items-stretch justify-center gap-3 max-w-[280px] sm:max-w-none mx-auto">
-              <Link
-                to="/courses"
-                className="group relative flex items-center justify-center px-6 py-3.5 bg-white text-indigo-700 font-bold rounded-xl transition-all hover:bg-yellow-300 hover:text-indigo-900 shadow-xl active:scale-95 overflow-hidden"
-              >
-                <BookOpen className="w-5 h-5 mr-2" />
-                <span>Browse Courses</span>
-              </Link>
-              <Link
-                to="/shop"
-                className="flex items-center justify-center px-6 py-3.5 border-2 border-white/30 bg-white/5 text-white font-bold rounded-xl backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
-              >
-                <ShoppingBag className="w-5 h-5 mr-2" />
-                <span>Shop Products</span>
-              </Link>
             </div>
           </div>
         </div>
@@ -492,29 +308,32 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 xs:p-8 md:p-12 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight">
-            Start Learning Today!
-          </h2>
-          <p className="text-white/80 text-sm sm:text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of students learning new skills. Get access to
-            premium courses taught by industry experts.
-          </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 sm:space-x-0">
-            <Link
-              to="/courses"
-              className="flex items-center justify-center px-6 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all active:scale-95 shadow-md"
-            >
-              <BookOpen className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">Browse Courses</span>
-            </Link>
-            <Link
-              to="/shop"
-              className="flex items-center justify-center px-6 py-3 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-all active:scale-95"
-            >
-              <ShoppingBag className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">Start Shopping</span>
-            </Link>
+        {/* Fixed height wrapper - CLS ফিক্স */}
+        <div className="h-[320px] sm:h-[300px] md:h-[340px]">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 xs:p-8 md:p-12 text-center h-full flex flex-col justify-center">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight">
+              Start Learning Today!
+            </h2>
+            <p className="text-white/80 text-sm sm:text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+              Join thousands of students learning new skills. Get access to
+              premium courses taught by industry experts.
+            </p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 sm:space-x-0">
+              <Link
+                to="/courses"
+                className="flex items-center justify-center px-6 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all active:scale-95 shadow-md"
+              >
+                <BookOpen className="w-5 h-5 mr-2 flex-shrink-0" />
+                <span className="whitespace-nowrap">Browse Courses</span>
+              </Link>
+              <Link
+                to="/shop"
+                className="flex items-center justify-center px-6 py-3 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-all active:scale-95"
+              >
+                <ShoppingBag className="w-5 h-5 mr-2 flex-shrink-0" />
+                <span className="whitespace-nowrap">Start Shopping</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

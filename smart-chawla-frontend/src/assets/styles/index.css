@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 
+
+body {
+  font-display: swap;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }

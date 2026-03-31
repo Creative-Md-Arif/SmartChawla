@@ -16,7 +16,6 @@ const ProductDetails = (index = 0) => {
   const [error, setError] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
 
@@ -112,8 +111,33 @@ const ProductDetails = (index = 0) => {
   // 1. Handle Loading State First
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb Skeleton */}
+        <div className="h-4 bg-gray-200 rounded w-48 mb-8"></div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
+          {/* Image Skeleton - Fixed dimensions NO CLS */}
+          <div>
+            <div className="h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 rounded-lg"></div>
+            <div className="flex space-x-2 mt-4 h-[88px] overflow-hidden">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0"
+                ></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Info Skeleton */}
+          <div className="space-y-6">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-10 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-24 bg-gray-200 rounded w-full"></div>
+            <div className="h-12 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -150,25 +174,29 @@ const ProductDetails = (index = 0) => {
     stock: product?.stock,
   };
 
-  // ... rest of your return logic (Breadcrumbs, UI, etc.)
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <CategoryBreadcrumb items={getBreadcrumbItems()} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
-        {/* Images Section */}
+      {/* FIXED: Main grid with min-height to prevent shift */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-4 min-h-[600px]">
+        {/* Images Section - FIXED DIMENSIONS NO CLS */}
         <div>
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 border">
+          {/* Main Image - Fixed pixel height, no aspect-ratio trick */}
+          <div className="h-[400px] md:h-[500px] lg:h-[600px] bg-gray-100 rounded-lg overflow-hidden border relative">
             <img
               src={product.images?.[selectedImage]?.url || "/placeholder.jpg"}
-              alt="Product"
+              alt={product.name}
               loading="eager"
               fetchpriority="high"
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              width="600"
+              height="600"
+              className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex space-x-2 overflow-x-auto pb-2">
+
+          {/* Thumbnails - Fixed height, overflow hidden to prevent push */}
+          <div className="flex space-x-2 mt-4 h-[88px] overflow-hidden">
             {product.images?.map((img, index) => (
               <button
                 key={index}
@@ -182,8 +210,9 @@ const ProductDetails = (index = 0) => {
                 <img
                   src={img.url}
                   alt=""
+                  width="80"
+                  height="80"
                   loading="lazy"
-                  fetchpriority="high"
                   className="w-full h-full object-cover"
                 />
               </button>
@@ -457,40 +486,40 @@ const ProductDetails = (index = 0) => {
         </div>
       </div>
 
-      {/* Related Products */}
+      {/* Related Products - FIXED: min-height to prevent CLS */}
       {relatedProducts.length > 0 && (
-        <div className="mt-20">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            Related Products
+        <div className="mt-10 border-t pt-16 min-h-[400px]">
+          <h2 className="text-3xl font-black text-gray-900 mb-10">
+            Releted Products
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {relatedProducts.map((rel) => (
               <Link
                 key={rel._id}
                 to={`/product/${rel.slug}`}
-                className="group bg-white rounded-xl border p-3 hover:shadow-lg transition-shadow"
+                className="group bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-2xl hover:shadow-purple-100 transition-all duration-300"
               >
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-50 mb-3">
+                {/* FIXED: Fixed height container for image */}
+                <div className="h-[200px] md:h-[250px] rounded-xl overflow-hidden bg-gray-50 mb-4">
                   <img
-                    src={rel.images?.[0]?.url}
+                    src={rel.images?.[0]?.url?.replace(
+                      "/upload/",
+                      "/upload/w_400,q_auto,f_auto/",
+                    )}
                     alt={rel.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    width="300"
+                    height="300"
                     loading="lazy"
-                    fetchpriority="high"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <h3 className="font-medium text-gray-900 truncate">
+                <h3 className="font-bold text-gray-800 truncate text-sm md:text-base">
                   {rel.name}
                 </h3>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-purple-600 font-bold">
+                  <span className="text-purple-600 font-black">
                     {formatPrice(rel.discountPrice || rel.price)}
                   </span>
-                  {rel.discountPrice && (
-                    <span className="text-xs text-gray-400 line-through">
-                      {formatPrice(rel.price)}
-                    </span>
-                  )}
                 </div>
               </Link>
             ))}
