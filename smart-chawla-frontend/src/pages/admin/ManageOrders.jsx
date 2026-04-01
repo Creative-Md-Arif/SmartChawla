@@ -416,7 +416,7 @@ const ManageOrders = () => {
 
   const handleViewDetails = async (orderId) => {
     try {
-      const response = await axiosInstance.get(`/orders/${orderId}`);
+      const response = await axiosInstance.get(`/orders/admin/${orderId}`);
       if (response.data.success) {
         setSelectedOrder(response.data.order);
         setDetailOpen(true);
