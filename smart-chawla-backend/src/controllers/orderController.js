@@ -230,6 +230,32 @@ exports.getMyOrders = async (req, res, next) => {
   }
 };
 
+// Admin যেকোনো order দেখতে পারবে (including courses)
+exports.getOrderByIdAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return next(new AppError("Invalid order ID format", 400));
+    }
+
+    const order = await Order.findById(id)
+      .populate("user", "fullName email phone")
+      .populate("verifiedBy", "fullName email");
+
+    if (!order) {
+      return next(new AppError("Order not found", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get order by ID
 exports.getOrderById = async (req, res, next) => {
   try {
