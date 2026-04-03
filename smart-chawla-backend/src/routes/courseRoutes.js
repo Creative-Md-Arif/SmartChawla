@@ -10,6 +10,11 @@ const { uploadFields } = require("../middlewares/upload");
 const handleLargePayload = (req, res, next) => {
   req.setTimeout(30 * 60 * 1000); // 30 minutes
   res.setTimeout(30 * 60 * 1000);
+
+   if (req.headers["content-type"]?.includes("multipart/form-data")) {
+     return next();
+   }
+  
   next();
 };
 

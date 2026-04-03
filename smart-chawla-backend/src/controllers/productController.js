@@ -6,11 +6,19 @@ const {
 } = require("../config/cloudinary");
 const { AppError } = require("../utils/errorHandler");
 const { cleanupFiles } = require("../middlewares/upload");
-
+const cache = require("../utils/cache");
 
 // Get all products (with pagination & filtering)
 exports.getAllProducts = async (req, res, next) => {
   try {
+    const cacheKey = `products:${JSON.stringify(req.query)}`;
+
+    // Check cache first
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+
     const {
       page = 1,
       limit = 12,
@@ -30,7 +38,6 @@ exports.getAllProducts = async (req, res, next) => {
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
         { tags: { $in: [new RegExp(search, "i")] } },
       ];
     }
@@ -74,7 +81,10 @@ exports.getAllProducts = async (req, res, next) => {
         .sort(sort)
         .skip(skip)
         .limit(limitNum)
-        .lean(),
+        .lean()
+        .select(
+          "name slug price discountPrice stock images category subCategory isFeatured createdAt",
+        ),
       Product.countDocuments(filter),
     ]);
 
@@ -88,6 +98,8 @@ exports.getAllProducts = async (req, res, next) => {
         limit: limitNum,
       },
     });
+    cache.set(cacheKey, response, 120);
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -96,6 +108,13 @@ exports.getAllProducts = async (req, res, next) => {
 // Get featured products
 exports.getFeaturedProducts = async (req, res, next) => {
   try {
+    const cacheKey = "products:featured";
+
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+
     const limit = Math.min(20, parseInt(req.query.limit) || 8);
 
     const products = await Product.find({
@@ -105,12 +124,17 @@ exports.getFeaturedProducts = async (req, res, next) => {
     })
       .populate("category", "name slug")
       .limit(limit)
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .lean()
+      .select("name slug price discountPrice images category");
 
     res.status(200).json({
       success: true,
       products,
     });
+    cache.set(cacheKey, response, 300);
+
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -121,18 +145,25 @@ exports.getFeaturedProducts = async (req, res, next) => {
 exports.getProductBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
+    const cacheKey = `product:${slug}`;
+
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      Product.updateOne({ slug }, { $inc: { views: 1 } }).exec();
+      return res.status(200).json(cached);
+    }
 
     const product = await Product.findOne({ slug, isActive: true })
       .populate("category", "name slug")
-      .populate("subCategory", "name slug");
+      .populate("subCategory", "name slug")
+      .lean();
 
     if (!product) {
       return next(new AppError("Product not found", 404));
     }
 
     // Fix 1: Safely increment views (যদি আগে থেকে views না থাকে তাহলে 0 ধরে নিবে)
-    product.views = (product.views || 0) + 1;
-    await product.save({ validateBeforeSave: false });
+    Product.updateOne({ _id: product._id }, { $inc: { views: 1 } }).exec();
 
     // Fix 2: Get related products safely using the extracted category ID
     let relatedProducts = [];
@@ -147,7 +178,8 @@ exports.getProductBySlug = async (req, res, next) => {
         isActive: true,
       })
         .limit(4)
-        .select("name slug price discountPrice images");
+        .select("name slug price discountPrice images")
+        .lean();
     }
 
     res.status(200).json({
@@ -155,6 +187,9 @@ exports.getProductBySlug = async (req, res, next) => {
       product,
       relatedProducts,
     });
+
+    cache.set(cacheKey, response, 600);
+    res.status(200).json(response);
   } catch (error) {
     // Console log the exact error so you can see it in your backend terminal
     console.error("Error in getProductBySlug:", error);
@@ -208,6 +243,7 @@ exports.createProduct = async (req, res, next) => {
     }
 
     const product = await Product.create(productData);
+    cache.deletePattern("products:*");
 
     res.status(201).json({
       success: true,
@@ -355,7 +391,6 @@ exports.updateProduct = async (req, res, next) => {
       }
     });
 
-
     const product = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
@@ -365,13 +400,15 @@ exports.updateProduct = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
+    cache.delete(`product:${product.slug}`);
+    cache.deletePattern("products:list:*");
+
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
       product,
     });
   } catch (error) {
-    console.error("Update error:", error);
     next(error);
   }
 };
@@ -474,6 +511,9 @@ exports.deleteProduct = async (req, res, next) => {
       await product.save();
     }
 
+    cache.deletePattern("products:*");
+    cache.delete(`product:${product.slug}`);
+
     res.status(200).json({
       success: true,
       message:
@@ -486,10 +526,11 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-
 exports.searchProducts = async (req, res, next) => {
   try {
     const { q, limit = 10, type = "full" } = req.query;
+
+    
 
     if (!q || q.length < 1) {
       return res.status(200).json({

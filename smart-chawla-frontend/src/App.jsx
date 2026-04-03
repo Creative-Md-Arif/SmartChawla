@@ -1,36 +1,44 @@
-import { useEffect } from 'react';
-import { 
-  createBrowserRouter, 
-  RouterProvider, 
-  ScrollRestoration, 
-  Outlet 
-} from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Toaster } from 'react-hot-toast';
+import { useEffect } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  ScrollRestoration,
+  Outlet,
+} from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Toaster } from "react-hot-toast";
 
+import AppRoutes from "./routes/AppRoutes";
+import Navbar from "./components/common/Navbar";
+import Footer from "./components/common/Footer";
+import "./assets/styles/index.css";
 
-import AppRoutes from './routes/AppRoutes';
-import Navbar from './components/common/Navbar';
-import Footer from './components/common/Footer';
-import './assets/styles/index.css';
-
-import { syncEnrollments } from './redux/slices/enrollSlice';
-import axiosInstance from './utils/axiosInstance';
+import { syncEnrollments } from "./redux/slices/enrollSlice";
+import axiosInstance from "./utils/axiosInstance";
 
 // ১. লেআউট কম্পোনেন্ট (ScrollRestoration এখানে থাকবে)
 const RootLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <ScrollRestoration /> 
+      
+      {/* ১. Navbar ফিক্সড বা স্টিকি যাই হোক */}
       <Navbar />
-      <main className="flex-1 pt-16">
-        <Outlet /> 
+
+      {/* ২. এখানে margin-top (mt) ব্যবহার করা হয়েছে। 
+         ৩২০ পিক্সেল স্ক্রিনে ন্যাভবারের উচ্চতা সাধারণত ৬৫-৭০ পিক্সেল হয়। 
+         তাই mt-[70px] দিলে কন্টেন্ট ঠিক ন্যাভবারের নিচ থেকে শুরু হবে। 
+      */}
+      <main className="flex-1 w-full mt-[70px] sm:mt-[80px] px-3 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        <div className="w-full h-full">
+          <Outlet /> 
+        </div>
       </main>
+      
       <Footer />
     </div>
   );
 };
-
 
 const router = createBrowserRouter([
   {
@@ -39,7 +47,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "*",
-        element: <AppRoutes />, 
+        element: <AppRoutes />,
       },
     ],
   },
@@ -53,7 +61,7 @@ function App() {
     if (isAuthenticated && user) {
       const fetchEnrollments = async () => {
         try {
-          const response = await axiosInstance.get('/courses/my/enrolled');
+          const response = await axiosInstance.get("/courses/my/enrolled");
           const enrollments = response.data?.courses?.map((e) => ({
             courseId: e.course?._id || e.courseId,
             title: e.course?.title,
@@ -66,11 +74,11 @@ function App() {
             progress: e.progress || 0,
             lastAccessed: e.lastAccessed || new Date().toISOString(),
             completedLessons: e.completedLessons || [],
-            status: e.status || 'active',
+            status: e.status || "active",
           }));
           dispatch(syncEnrollments(enrollments));
         } catch (error) {
-          console.error('Error syncing enrollments:', error);
+          console.error("Error syncing enrollments:", error);
         }
       };
       fetchEnrollments();
@@ -85,8 +93,8 @@ function App() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
         }}
       />

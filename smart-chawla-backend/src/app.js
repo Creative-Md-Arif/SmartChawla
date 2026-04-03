@@ -2,6 +2,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const compression = require("compression");
 const { setupSecurity } = require("./middlewares/security");
 const { globalErrorHandler, notFound } = require("./utils/errorHandler");
 
@@ -17,6 +18,12 @@ const couponRoutes = require("./routes/couponRoutes");
 
 const app = express();
 
+app.use(
+  compression({
+    level: 6,
+    threshold: 1024,
+  }),
+);
 
 app.use(
   cors({
@@ -31,18 +38,43 @@ app.use(
   }),
 );
 
-
 setupSecurity(app);
 
 // ✅ 3. Body parser
-app.use(express.json({ limit: "2gb" }));
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "2gb",
-    parameterLimit: 10000,
-  }),
-);
+app.use((req, res, next) => {
+  if (req.headers["content-type"]?.includes("multipart/form-data")) {
+    return next();
+  }
+  express.json({ limit: "10mb" })(req, res, next);
+});
+
+app.use((req, res, next) => {
+  if (req.headers["content-type"]?.includes("multipart/form-data")) {
+    return next();
+  }
+  express.urlencoded({ extended: true, limit: "10mb", parameterLimit: 1000 })(
+    req,
+    res,
+    next,
+  );
+});
+
+app.use((req, res, next) => {
+  // API routes কে short cache
+  if (
+    req.path.startsWith("/api/v1/products") ||
+    req.path.startsWith("/api/v1/courses") ||
+    req.path.startsWith("/api/v1/orders") ||
+    req.path.startsWith("/api/v1/admin") ||
+    req.path.startsWith("/api/v1/categories") ||
+    req.path.startsWith("/api/v1/banners") ||
+    req.path.startsWith("/api/v1/coupons") ||
+    req.path.startsWith("/api/v1/auth")
+  ) {
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  }
+  next();
+});
 
 // ✅ 4. Logging
 if (process.env.NODE_ENV === "development") {

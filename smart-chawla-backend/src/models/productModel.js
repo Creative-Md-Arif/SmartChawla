@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const productSchema = new mongoose.Schema(
   {
@@ -165,10 +165,13 @@ const productSchema = new mongoose.Schema(
 );
 
 // Indexes
-productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+productSchema.index({ name: "text", tags: "text" });
 productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ slug: 1, isActive: 1 }); // 🔥 গুরুত্বপূর্ণ
+productSchema.index({ isFeatured: 1, isActive: 1, stock: 1 }); // 🔥 গুরুত্বপূর্ণ
+productSchema.index({ views: -1 });
 
 // Virtual for average rating
 productSchema.virtual("averageRating").get(function () {
@@ -188,9 +191,10 @@ productSchema.virtual("discountPercentage").get(function () {
 });
 
 // Generate slug before saving
-productSchema.pre('save', function (next) {
-  if (this.isModified('name')) {
-    this.slug = slugify(this.name, { lower: true, strict: true }) + '-' + Date.now();
+productSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug =
+      slugify(this.name, { lower: true, strict: true }) + "-" + Date.now();
   }
   next();
 });
@@ -207,4 +211,4 @@ productSchema.methods.updateStock = async function (quantity) {
   await this.save();
 };
 
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.model("Product", productSchema);
