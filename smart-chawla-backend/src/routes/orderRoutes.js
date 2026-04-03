@@ -33,6 +33,13 @@ router.get(
 // ✅ 2. DYNAMIC ROUTES WITH :id (LAST)
 // ==========================================
 
+router.get(
+  "/admin/:id",
+  authenticate,
+  authorize("admin"),
+  orderController.getOrderByIdAdmin,
+);
+
 // Get single order
 router.get("/:id", authenticate, orderController.getOrderById);
 
