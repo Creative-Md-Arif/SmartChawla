@@ -25,10 +25,7 @@ const RootLayout = () => {
       {/* ১. Navbar ফিক্সড বা স্টিকি যাই হোক */}
       <Navbar />
 
-      {/* ২. এখানে margin-top (mt) ব্যবহার করা হয়েছে। 
-         ৩২০ পিক্সেল স্ক্রিনে ন্যাভবারের উচ্চতা সাধারণত ৬৫-৭০ পিক্সেল হয়। 
-         তাই mt-[70px] দিলে কন্টেন্ট ঠিক ন্যাভবারের নিচ থেকে শুরু হবে। 
-      */}
+    
       <main className="flex-1 w-full mt-[70px] sm:mt-[80px] px-3 sm:px-6 lg:px-8 mx-auto max-w-7xl">
         <div className="w-full h-full">
           <Outlet /> 
