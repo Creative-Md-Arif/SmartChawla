@@ -13,7 +13,6 @@ exports.getAllProducts = async (req, res, next) => {
   try {
     const cacheKey = `products:${JSON.stringify(req.query)}`;
 
-    // Check cache first
     const cached = cache.get(cacheKey);
     if (cached) {
       return res.status(200).json(cached);
@@ -23,7 +22,7 @@ exports.getAllProducts = async (req, res, next) => {
       page = 1,
       limit = 12,
       search,
-      category, // Can be single ID or comma-separated IDs
+      category,
       subCategory,
       minPrice,
       maxPrice,
@@ -32,7 +31,6 @@ exports.getAllProducts = async (req, res, next) => {
       sort = "-createdAt",
     } = req.query;
 
-    // Build filter object
     const filter = { isActive: true };
 
     if (search) {
@@ -42,7 +40,6 @@ exports.getAllProducts = async (req, res, next) => {
       ];
     }
 
-    // Fix: Handle multiple categories (comma-separated) or single category
     if (category) {
       const categoryIds = category
         .split(",")
@@ -50,10 +47,8 @@ exports.getAllProducts = async (req, res, next) => {
         .filter(Boolean);
 
       if (categoryIds.length === 1) {
-        // Single category
         filter.category = categoryIds[0];
       } else if (categoryIds.length > 1) {
-        // Multiple categories - use $in operator
         filter.category = { $in: categoryIds };
       }
     }
@@ -68,12 +63,10 @@ exports.getAllProducts = async (req, res, next) => {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Pagination
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
 
-    // Execute query
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate("category", "name slug")
@@ -83,12 +76,13 @@ exports.getAllProducts = async (req, res, next) => {
         .limit(limitNum)
         .lean()
         .select(
-          "name slug price discountPrice stock images category subCategory isFeatured createdAt",
+          "name slug price discountPrice stock images category subCategory isFeatured createdAt"
         ),
       Product.countDocuments(filter),
     ]);
 
-    res.status(200).json({
+    // ✅ FIX: response variable define করুন
+    const response = {
       success: true,
       products,
       pagination: {
@@ -97,9 +91,11 @@ exports.getAllProducts = async (req, res, next) => {
         total,
         limit: limitNum,
       },
-    });
+    };
+
     cache.set(cacheKey, response, 120);
-    res.status(200).json(response);
+    res.status(200).json(response);  // ✅ একবারই send করুন
+
   } catch (error) {
     next(error);
   }
@@ -128,19 +124,19 @@ exports.getFeaturedProducts = async (req, res, next) => {
       .lean()
       .select("name slug price discountPrice images category");
 
-    res.status(200).json({
+    // ✅ FIX: response variable define করুন
+    const response = {
       success: true,
       products,
-    });
-    cache.set(cacheKey, response, 300);
+    };
 
-    res.status(200).json(response);
+    cache.set(cacheKey, response, 300);
+    res.status(200).json(response);  // ✅ একবারই send করুন
+
   } catch (error) {
     next(error);
   }
 };
-
-// Get product by slug
 // Get product by slug
 exports.getProductBySlug = async (req, res, next) => {
   try {
@@ -162,10 +158,8 @@ exports.getProductBySlug = async (req, res, next) => {
       return next(new AppError("Product not found", 404));
     }
 
-    // Fix 1: Safely increment views (যদি আগে থেকে views না থাকে তাহলে 0 ধরে নিবে)
     Product.updateOne({ _id: product._id }, { $inc: { views: 1 } }).exec();
 
-    // Fix 2: Get related products safely using the extracted category ID
     let relatedProducts = [];
     const categoryId = product.category
       ? product.category._id || product.category
@@ -182,21 +176,21 @@ exports.getProductBySlug = async (req, res, next) => {
         .lean();
     }
 
-    res.status(200).json({
+    // ✅ FIX: response variable define করুন
+    const response = {
       success: true,
       product,
       relatedProducts,
-    });
+    };
 
     cache.set(cacheKey, response, 600);
-    res.status(200).json(response);
+    res.status(200).json(response);  // ✅ একবারই send করুন
+
   } catch (error) {
-    // Console log the exact error so you can see it in your backend terminal
     console.error("Error in getProductBySlug:", error);
     next(error);
   }
 };
-
 // Create product
 exports.createProduct = async (req, res, next) => {
   try {
